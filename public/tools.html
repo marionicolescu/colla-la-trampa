@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+    <img id="source" src="/pwa-192x192.png" style="display:none;" />
+    <script>
+        function resizeImage(width, height) {
+            const img = document.getElementById('source');
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            return canvas.toDataURL('image/png');
+        }
+
+        function generateScreenshot(width, height, text) {
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+
+            // Background
+            ctx.fillStyle = '#F3F4F6';
+            ctx.fillRect(0, 0, width, height);
+
+            // Text
+            ctx.fillStyle = '#2563EB';
+            ctx.font = 'bold ' + (width / 10) + 'px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, width / 2, height / 2);
+
+            return canvas.toDataURL('image/png');
+        }
+    </script>
+</body>
+
+</html>
