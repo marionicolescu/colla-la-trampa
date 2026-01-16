@@ -25,7 +25,17 @@ const USERS_DATA = [
     { id: 11, name: 'Mussus', pin: '4308' },
 ];
 
+const VERSION = "1.0.4 - Diagnostic Mode";
+
 export const AppProvider = ({ children }) => {
+    useEffect(() => {
+        console.log(`[App] Version: ${VERSION}`);
+        console.log("[App] Config Check:", {
+            apiKey: !!import.meta.env.VITE_FIREBASE_API_KEY,
+            projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+            authDomain: !!import.meta.env.VITE_FIREBASE_AUTH_DOMAIN
+        });
+    }, []);
     // Members are now static based on USERS_DATA
     const members = USERS_DATA.map(u => ({ id: u.id, name: u.name }));
 
@@ -102,12 +112,14 @@ export const AppProvider = ({ children }) => {
 
     const getMemberBalance = (memberId) => {
         let balance = 0;
+        const targetId = Number(memberId);
         transactions.forEach(t => {
-            if (t.memberId === memberId) {
-                if (t.type === 'CONSUMPTION') balance -= t.amount;
-                if (t.type === 'PAYMENT') balance += t.amount;
-                if (t.type === 'PURCHASE_BOTE') balance += t.amount;
-                if (t.type === 'ADVANCE') balance += t.amount;
+            const amount = Number(t.amount) || 0;
+            if (Number(t.memberId) === targetId) {
+                if (t.type === 'CONSUMPTION') balance -= amount;
+                if (t.type === 'PAYMENT') balance += amount;
+                if (t.type === 'PURCHASE_BOTE') balance += amount;
+                if (t.type === 'ADVANCE') balance += amount;
             }
         });
         return balance;
@@ -116,9 +128,10 @@ export const AppProvider = ({ children }) => {
     const getPotBalance = () => {
         let pot = 0;
         transactions.forEach(t => {
-            if (t.type === 'PAYMENT') pot += t.amount;
-            if (t.type === 'PURCHASE_BOTE') pot -= t.amount;
-            if (t.type === 'ADVANCE') pot += t.amount;
+            const amount = Number(t.amount) || 0;
+            if (t.type === 'PAYMENT') pot += amount;
+            if (t.type === 'PURCHASE_BOTE') pot -= amount;
+            if (t.type === 'ADVANCE') pot += amount;
         });
         return pot;
     };

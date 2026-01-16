@@ -2,13 +2,15 @@ import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-    appId: import.meta.env.VITE_FIREBASE_APP_ID
+    apiKey: "AIzaSyC3BQQwyweOOfkJ7rv7qDtDzE_UNcoB2tY",
+    authDomain: "colla-la-trampa.firebaseapp.com",
+    projectId: "colla-la-trampa",
+    storageBucket: "colla-la-trampa.firebasestorage.app",
+    messagingSenderId: "1018809264186",
+    appId: "1:1018809264186:web:8fc25969f31058795bed03"
 };
 
+console.log("[Firestore] Initializing with inlined config:", firebaseConfig.projectId);
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
+console.log("[Firestore] DB object created.");
