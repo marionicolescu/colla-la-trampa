@@ -1,4 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { db } from '../firestore';
+import {
+    collection,
+    addDoc,
+    onSnapshot,
+    query,
+    orderBy,
+    serverTimestamp
+} from 'firebase/firestore';
 
 const AppContext = createContext();
 
@@ -17,16 +26,10 @@ const USERS_DATA = [
 ];
 
 export const AppProvider = ({ children }) => {
-    // Members are now static based on USERS_DATA (minus PIN for safety/cleanliness if needed, but here we just use USERS_DATA for list)
-    // We only persisted members before to allow adding dynamic ones? No, requirements imply hardcoded. 
-    // So we can drop 'members' from localStorage or just sync it.
-    // Let's use USERS_DATA as the source of truth for members.
+    // Members are now static based on USERS_DATA
     const members = USERS_DATA.map(u => ({ id: u.id, name: u.name }));
 
-    const [transactions, setTransactions] = useState(() => {
-        const saved = localStorage.getItem('transactions');
-        return saved ? JSON.parse(saved) : [];
-    });
+    const [transactions, setTransactions] = useState([]);
 
     const [currentUser, setCurrentUser] = useState(() => {
         const saved = localStorage.getItem('currentUser');
@@ -44,9 +47,27 @@ export const AppProvider = ({ children }) => {
         return () => window.removeEventListener('beforeinstallprompt', handler);
     }, []);
 
+    // Firestore Real-time listener
     useEffect(() => {
-        localStorage.setItem('transactions', JSON.stringify(transactions));
-    }, [transactions]);
+        const q = query(collection(db, "transactions"), orderBy("timestamp", "desc"));
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            const txs = [];
+            querySnapshot.forEach((doc) => {
+                // Map Firestore doc to our transaction structure
+                const data = doc.data();
+                txs.push({
+                    ...data,
+                    id: doc.id, // Use Firestore ID
+                    // Convert Firestore timestamp or use the saved ISO string if it exists. Fallback for pending server timestamps.
+                    timestamp: data.timestamp?.toDate
+                        ? data.timestamp.toDate().toISOString()
+                        : (data.timestamp || new Date().toISOString())
+                });
+            });
+            setTransactions(txs);
+        });
+        return () => unsubscribe();
+    }, []);
 
     useEffect(() => {
         if (currentUser) {
@@ -92,9 +113,17 @@ export const AppProvider = ({ children }) => {
         return pot;
     };
 
-    const addTransaction = (transaction) => {
-        const newTx = { ...transaction, id: Date.now(), timestamp: new Date().toISOString() };
-        setTransactions(prev => [newTx, ...prev]);
+    const addTransaction = async (transaction) => {
+        try {
+            const newTx = {
+                ...transaction,
+                timestamp: serverTimestamp()
+            };
+            await addDoc(collection(db, "transactions"), newTx);
+        } catch (error) {
+            console.error("Error adding transaction: ", error);
+            showToast("Error al guardar en el servidor");
+        }
     };
 
     const promptToInstall = async () => {
