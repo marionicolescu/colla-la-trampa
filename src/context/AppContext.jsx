@@ -49,8 +49,10 @@ export const AppProvider = ({ children }) => {
 
     // Firestore Real-time listener
     useEffect(() => {
+        console.log("[Firestore] Setting up listener for 'transactions' collection...");
         const q = query(collection(db, "transactions"), orderBy("timestamp", "desc"));
         const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            console.log(`[Firestore] Received update: ${querySnapshot.size} documents found.`);
             const txs = [];
             querySnapshot.forEach((doc) => {
                 // Map Firestore doc to our transaction structure
@@ -64,7 +66,15 @@ export const AppProvider = ({ children }) => {
                         : (data.timestamp || new Date().toISOString())
                 });
             });
+            console.log("[Firestore] Transactions state updated in Context.");
             setTransactions(txs);
+        }, (error) => {
+            console.error("[Firestore] Error in onSnapshot:", error);
+            if (error.code === 'permission-denied') {
+                showToast("Error: Sin permisos para leer de la base de datos.");
+            } else {
+                showToast(`Error de conexión: ${error.message}`);
+            }
         });
         return () => unsubscribe();
     }, []);
@@ -114,15 +124,21 @@ export const AppProvider = ({ children }) => {
     };
 
     const addTransaction = async (transaction) => {
+        console.log("[Firestore] Attempting to write transaction:", transaction);
         try {
             const newTx = {
                 ...transaction,
                 timestamp: serverTimestamp()
             };
-            await addDoc(collection(db, "transactions"), newTx);
+            const docRef = await addDoc(collection(db, "transactions"), newTx);
+            console.log("[Firestore] Successfully wrote document with ID:", docRef.id);
         } catch (error) {
-            console.error("Error adding transaction: ", error);
-            showToast("Error al guardar en el servidor");
+            console.error("[Firestore] Error adding transaction:", error);
+            if (error.code === 'permission-denied') {
+                showToast("Error: No tienes permiso para escribir transacciones.");
+            } else {
+                showToast(`Error al guardar: ${error.message}`);
+            }
         }
     };
 
