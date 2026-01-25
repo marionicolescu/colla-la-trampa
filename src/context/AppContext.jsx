@@ -23,6 +23,7 @@ const USERS_DATA = [
     { id: 9, name: 'Isabel', pin: '6119' },
     { id: 10, name: 'Jorge', pin: '7583' },
     { id: 11, name: 'Mussus', pin: '4308' },
+    { id: 12, name: 'Nuria', pin: '9221' },
 ];
 
 const VERSION = "1.0.4 - Diagnostic Mode";
