@@ -50,8 +50,6 @@ export default function History() {
                 return {
                     title: 'Compra del bote',
                     icon: <ShoppingCartIcon style={{ width: '1.5rem', color: '#2563EB' }} />,
-                    amountClass: 'text-primary', // Screenshot -60.00 is Black? Or blue? Actually -60.00 black in screenshot 4.
-                    // Wait, screenshot 4: "Compra del bote -60.00 €" (Black text, Blue Icon, Blue stripe).
                     amountSign: '-',
                     amountClass: '', // Default color
                     borderColor: '#2563EB'

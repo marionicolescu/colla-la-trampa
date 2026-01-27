@@ -113,7 +113,6 @@ export default function Consume() {
                     <div style={{
                         marginTop: '0.75rem',
                         fontSize: '0.875rem',
-                        color: 'var(--primary)', // Or orange/warning color
                         fontWeight: 500,
                         backgroundColor: '#FEF3C7',
                         color: '#D97706',

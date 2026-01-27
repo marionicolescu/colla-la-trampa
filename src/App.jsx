@@ -5,6 +5,7 @@ import Home from './views/Home';
 import Consume from './views/Consume';
 import Purchases from './views/Purchases';
 import History from './views/History';
+import Statistics from './views/Statistics';
 
 import { useApp } from './context/AppContext';
 import Login from './views/Login';
@@ -24,6 +25,7 @@ function AppContent() {
         {activeTab === 'consumir' && <Consume />}
         {activeTab === 'compras' && <Purchases />}
         {activeTab === 'historial' && <History />}
+        {activeTab === 'estadisticas' && <Statistics />}
       </main>
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
 

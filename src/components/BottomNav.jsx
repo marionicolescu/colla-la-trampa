@@ -1,6 +1,6 @@
 import React from 'react';
-import { HomeIcon, BuildingStorefrontIcon, ShoppingBagIcon, ClockIcon } from '@heroicons/react/24/outline'; // Using 24 outline
-import { HomeIcon as HomeSolid, BuildingStorefrontIcon as StoreSolid, ShoppingBagIcon as BagSolid, ClockIcon as ClockSolid } from '@heroicons/react/24/solid';
+import { HomeIcon, BuildingStorefrontIcon, ShoppingBagIcon, ClockIcon, ChartBarIcon } from '@heroicons/react/24/outline'; // Using 24 outline
+import { HomeIcon as HomeSolid, BuildingStorefrontIcon as StoreSolid, ShoppingBagIcon as BagSolid, ClockIcon as ClockSolid, ChartBarIcon as BarSolid } from '@heroicons/react/24/solid';
 
 export default function BottomNav({ activeTab, onTabChange }) {
     const tabs = [
@@ -8,6 +8,7 @@ export default function BottomNav({ activeTab, onTabChange }) {
         { id: 'consumir', label: 'Consumir', icon: BuildingStorefrontIcon, activeIcon: StoreSolid },
         { id: 'compras', label: 'Compras', icon: ShoppingBagIcon, activeIcon: BagSolid },
         { id: 'historial', label: 'Historial', icon: ClockIcon, activeIcon: ClockSolid },
+        { id: 'estadisticas', label: 'Estadísticas', icon: ChartBarIcon, activeIcon: BarSolid },
     ];
 
     return (

