@@ -119,21 +119,23 @@ export const AppProvider = ({ children }) => {
             }
         });
 
-        // Settings Listener
-        const unsubSettings = onSnapshot(collection(db, "app_settings"), (snap) => {
-            if (snap.empty) {
-                const { setDoc, doc } = import('firebase/firestore');
+        // Settings Listener (Direct Document)
+        const unsubSettings = onSnapshot(doc(db, "app_settings", "global"), (docSnap) => {
+            if (docSnap.exists()) {
+                setAppSettings(docSnap.data());
+            } else {
+                console.warn("[Firestore] Global settings document missing. Creating defaults...");
                 import('firebase/firestore').then(mod => {
                     mod.setDoc(mod.doc(db, "app_settings", "global"), {
                         maintenanceMode: false,
                         motd: "¡Bienvenidos a la nueva app de la Colla!"
                     });
                 });
-            } else {
-                snap.forEach(doc => {
-                    if (doc.id === "global") setAppSettings(doc.data());
-                });
             }
+            setLoadingSettings(false);
+        }, (error) => {
+            console.error("[Firestore] Settings listener error:", error);
+            setLoadingSettings(false);
         });
 
         // Transactions Listener
@@ -151,6 +153,9 @@ export const AppProvider = ({ children }) => {
                 });
             });
             setTransactions(txs);
+            setLoadingData(false);
+        }, (error) => {
+            console.error("[Firestore] Transactions listener error:", error);
             setLoadingData(false);
         });
 
