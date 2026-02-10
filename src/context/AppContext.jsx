@@ -111,7 +111,7 @@ export const AppProvider = ({ children }) => {
         if (!user || user.pin !== pin) return false;
 
         const email = `user_${user.id}@latrampa.com`;
-        const password = pin; // Using PIN as password for now as requested
+        const password = pin + pin; // Repeat PIN to satisfy Firebase 6-char requirement (4+4=8)
 
         try {
             await signInWithEmailAndPassword(auth, email, password);
