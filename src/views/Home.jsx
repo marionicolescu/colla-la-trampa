@@ -4,7 +4,7 @@ import Modal from '../components/Modal';
 import { ArrowUpIcon, ArrowDownIcon, ShoppingCartIcon, CurrencyEuroIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
 
 export default function Home() {
-    const { members, transactions, currentUser, getMemberBalance, getPotBalance, addTransaction, logout, installPrompt, promptToInstall } = useApp();
+    const { members, transactions, currentUser, getMemberBalance, getPotBalance, addTransaction, logout, installPrompt, promptToInstall, appSettings } = useApp();
     const [selectedMember, setSelectedMember] = useState(null);
     const [showSettleConfirm, setShowSettleConfirm] = useState(false);
 
@@ -12,8 +12,6 @@ export default function Home() {
     const myBalance = getMemberBalance(currentUser.id);
 
     // Calculate total pending debt in the system (sum of all negative balances)
-    // or maybe "Total a deber" meant something else?
-    // "Pendiente total" usually means total money people owe to the pot.
     const totalPending = members.reduce((acc, m) => {
         const bal = getMemberBalance(m.id);
         return bal < 0 ? acc + Math.abs(bal) : acc;
@@ -32,7 +30,7 @@ export default function Home() {
     // Helper to format currency
     const fmt = (n) => n.toFixed(2) + ' €';
 
-    // Helper to get transaction details (copied logic from History, should ideally be shared)
+    // Helper to get transaction details
     const getTxDetails = (t) => {
         switch (t.type) {
             case 'CONSUMPTION': return { icon: <ArrowUpIcon style={{ width: '1rem', color: 'var(--danger)' }} />, label: 'Consumo', sign: '-', color: 'text-danger' };
@@ -64,6 +62,25 @@ export default function Home() {
                     </button>
                 </div>
             </div>
+
+            {appSettings?.motd && (
+                <div style={{
+                    backgroundColor: '#DBEAFE',
+                    color: '#1E40AF',
+                    padding: '1rem',
+                    borderRadius: '0.75rem',
+                    marginBottom: '1rem',
+                    border: '1px solid #BFDBFE',
+                    fontSize: '0.9rem',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem'
+                }}>
+                    <span style={{ fontSize: '1.2rem' }}>📢</span>
+                    <span style={{ fontWeight: 500 }}>{appSettings.motd}</span>
+                </div>
+            )}
 
             {/* Bote Card */}
             <div style={{

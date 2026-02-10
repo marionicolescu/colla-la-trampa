@@ -11,13 +11,36 @@ import { useApp } from './context/AppContext';
 import Login from './views/Login';
 
 function AppContent() {
-  const { currentUser, notification, loadingAuth } = useApp();
+  const { currentUser, notification, loadingAuth, loadingData, appSettings } = useApp();
   const [activeTab, setActiveTab] = useState('home');
 
-  if (loadingAuth) {
+  if (loadingAuth || loadingData) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ color: 'var(--primary)', fontWeight: 'bold' }}>Cargando...</div>
+      </div>
+    );
+  }
+
+  // Maintenance Mode Overlay
+  if (appSettings?.maintenanceMode) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        textAlign: 'center',
+        padding: '2rem',
+        backgroundColor: '#F3F4F6'
+      }}>
+        <div style={{ fontSize: '5rem', marginBottom: '1rem' }}>💤</div>
+        <h1 style={{ color: 'var(--primary)', marginBottom: '1rem' }}>Modo Mantenimiento</h1>
+        <p style={{ color: 'var(--text-secondary)', maxWidth: '400px' }}>
+          Estamos ajustando los barriles y contando las monedas.
+          ¡Volvemos enseguida!
+        </p>
       </div>
     );
   }

@@ -2,15 +2,8 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { TrashIcon, ShoppingCartIcon } from '@heroicons/react/24/outline';
 
-const CATALOG = [
-    { id: '1', name: 'Refresco', price: 1.00, guestPrice: 1.50, icon: '🥤' },
-    { id: '2', name: 'Cerveza', price: 0.50, guestPrice: 1.00, icon: '🍺' },
-    { id: '3', name: 'Cubata', price: 2.00, guestPrice: 3.00, icon: '🍸' },
-    { id: '4', name: 'Chupito', price: 0.50, guestPrice: 1.00, icon: '🥃' },
-];
-
 export default function Consume() {
-    const { currentUser, addTransaction, showToast } = useApp();
+    const { currentUser, addTransaction, showToast, catalog } = useApp();
     const [isGuest, setIsGuest] = useState(false);
     const [cart, setCart] = useState({});
 
@@ -38,7 +31,7 @@ export default function Consume() {
     const calculateTotal = () => {
         let total = 0;
         Object.entries(cart).forEach(([id, qty]) => {
-            const item = CATALOG.find(i => i.id === id);
+            const item = catalog.find(i => i.id === id);
             if (item) {
                 total += (isGuest ? item.guestPrice : item.price) * qty;
             }
@@ -52,7 +45,7 @@ export default function Consume() {
 
         // Create description string
         const description = Object.entries(cart).map(([id, qty]) => {
-            const item = CATALOG.find(i => i.id === id);
+            const item = catalog.find(i => i.id === id);
             return `${qty}x ${item.name}`;
         }).join(', ') + (isGuest ? ' (Invitado)' : '');
 
@@ -126,7 +119,7 @@ export default function Consume() {
 
             {/* Catalog Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
-                {CATALOG.map(item => {
+                {catalog.map(item => {
                     const qty = cart[item.id] || 0;
                     return (
                         <div
@@ -185,7 +178,7 @@ export default function Consume() {
                 <div className="card mb-md" style={{ padding: '1rem' }}>
                     <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>Resumen</h3>
                     {Object.entries(cart).map(([id, qty]) => {
-                        const item = CATALOG.find(i => i.id === id);
+                        const item = catalog.find(i => i.id === id);
                         return (
                             <div key={id} className="flex justify-between items-center" style={{ marginBottom: '0.5rem', fontSize: '0.875rem' }}>
                                 <div className="flex items-center gap-sm">

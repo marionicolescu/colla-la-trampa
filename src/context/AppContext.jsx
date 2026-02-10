@@ -32,34 +32,53 @@ const USERS_DATA = [
     { id: 12, name: 'Nuria', pin: '9221' },
 ];
 
-const VERSION = "1.1.0 - Firebase Auth Mode";
+const INITIAL_CATALOG = [
+    { id: '1', name: 'Refresco', price: 1.00, guestPrice: 1.50, icon: '🥤', order: 1 },
+    { id: '2', name: 'Cerveza', price: 0.50, guestPrice: 1.00, icon: '🍺', order: 2 },
+    { id: '3', name: 'Cubata', price: 2.00, guestPrice: 3.00, icon: '🍸', order: 3 },
+    { id: '4', name: 'Chupito', price: 0.50, guestPrice: 1.00, icon: '🥃', order: 4 },
+];
+
+const VERSION = "1.2.0 - Dynamic Data Mode";
 
 export const AppProvider = ({ children }) => {
     const [transactions, setTransactions] = useState([]);
+    const [members, setMembers] = useState([]);
+    const [catalog, setCatalog] = useState([]);
+    const [appSettings, setAppSettings] = useState({ maintenanceMode: false, motd: "" });
     const [currentUser, setCurrentUser] = useState(null);
     const [loadingAuth, setLoadingAuth] = useState(true);
+    const [loadingData, setLoadingData] = useState(true);
     const [installPrompt, setInstallPrompt] = useState(null);
     const [notification, setNotification] = useState(null);
-
-    // Members are static based on USERS_DATA
-    const members = USERS_DATA.map(u => ({ id: u.id, name: u.name }));
 
     useEffect(() => {
         console.log(`[App] Version: ${VERSION}`);
     }, []);
 
+    // Helper for auto-migration
+    const migrateDataIfEmpty = async (collectionName, data, idField = 'id') => {
+        const { getDocs, setDoc, doc } = await import('firebase/firestore');
+        const querySnapshot = await getDocs(collection(db, collectionName));
+        if (querySnapshot.empty) {
+            console.log(`[Migration] Populating ${collectionName}...`);
+            for (const item of data) {
+                const docId = String(item[idField]);
+                await setDoc(doc(db, collectionName, docId), item);
+            }
+        }
+    };
+
     // Firebase Auth Listener
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
-                // Fictitious email format: user_{id}@latrampa.com
                 const match = user.email.match(/user_(\d+)@latrampa\.com/);
                 if (match) {
                     const userId = parseInt(match[1]);
-                    const userData = USERS_DATA.find(u => u.id === userId);
-                    if (userData) {
-                        setCurrentUser({ id: userData.id, name: userData.name });
-                    }
+                    // Temporarily check against hardcoded if members not yet loaded, 
+                    // or better, rely on the members listener once it settles
+                    setCurrentUser({ id: userId, name: 'Usuario' }); // Temporary name
                 }
             } else {
                 setCurrentUser(null);
@@ -69,22 +88,59 @@ export const AppProvider = ({ children }) => {
         return () => unsubscribe();
     }, []);
 
+    // Firestore Dynamic Listeners (Members, Products, Settings, Transactions)
     useEffect(() => {
-        const handler = (e) => {
-            e.preventDefault();
-            setInstallPrompt(e);
-        };
-        window.addEventListener('beforeinstallprompt', handler);
-        return () => window.removeEventListener('beforeinstallprompt', handler);
-    }, []);
+        console.log("[Firestore] Setting up listeners...");
 
-    // Firestore Real-time listener
-    useEffect(() => {
-        console.log("[Firestore] Setting up listener for 'transactions' collection...");
-        const q = query(collection(db, "transactions"), orderBy("timestamp", "desc"));
-        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        // Members Listener
+        const unsubMembers = onSnapshot(collection(db, "members"), (snap) => {
+            if (snap.empty) {
+                migrateDataIfEmpty("members", USERS_DATA);
+            } else {
+                const mlist = [];
+                snap.forEach(doc => mlist.push({ ...doc.data(), id: Number(doc.id) }));
+                setMembers(mlist);
+                // Sync currentUser name if already logged in
+                if (currentUser) {
+                    const me = mlist.find(m => m.id === currentUser.id);
+                    if (me) setCurrentUser(prev => ({ ...prev, name: me.name }));
+                }
+            }
+        });
+
+        // Catalog Listener
+        const unsubCatalog = onSnapshot(collection(db, "products"), (snap) => {
+            if (snap.empty) {
+                migrateDataIfEmpty("products", INITIAL_CATALOG);
+            } else {
+                const clist = [];
+                snap.forEach(doc => clist.push({ ...doc.data(), id: doc.id }));
+                setCatalog(clist.sort((a, b) => a.order - b.order));
+            }
+        });
+
+        // Settings Listener
+        const unsubSettings = onSnapshot(collection(db, "app_settings"), (snap) => {
+            if (snap.empty) {
+                const { setDoc, doc } = import('firebase/firestore');
+                import('firebase/firestore').then(mod => {
+                    mod.setDoc(mod.doc(db, "app_settings", "global"), {
+                        maintenanceMode: false,
+                        motd: "¡Bienvenidos a la nueva app de la Colla!"
+                    });
+                });
+            } else {
+                snap.forEach(doc => {
+                    if (doc.id === "global") setAppSettings(doc.data());
+                });
+            }
+        });
+
+        // Transactions Listener
+        const qTxs = query(collection(db, "transactions"), orderBy("timestamp", "desc"));
+        const unsubTxs = onSnapshot(qTxs, (snap) => {
             const txs = [];
-            querySnapshot.forEach((doc) => {
+            snap.forEach((doc) => {
                 const data = doc.data();
                 txs.push({
                     ...data,
@@ -95,37 +151,45 @@ export const AppProvider = ({ children }) => {
                 });
             });
             setTransactions(txs);
-        }, (error) => {
-            console.error("[Firestore] Error in onSnapshot:", error);
-            if (error.code === 'permission-denied') {
-                showToast("Error: Sin permisos para leer de la base de datos.");
-            } else {
-                showToast(`Error de conexión: ${error.message}`);
-            }
+            setLoadingData(false);
         });
-        return () => unsubscribe();
+
+        return () => {
+            unsubMembers();
+            unsubCatalog();
+            unsubSettings();
+            unsubTxs();
+        };
+    }, [currentUser?.id]);
+
+    useEffect(() => {
+        const handler = (e) => {
+            e.preventDefault();
+            setInstallPrompt(e);
+        };
+        window.addEventListener('beforeinstallprompt', handler);
+        return () => window.removeEventListener('beforeinstallprompt', handler);
     }, []);
 
     const login = async (memberId, pin) => {
-        const user = USERS_DATA.find(u => u.id === parseInt(memberId));
-        if (!user || user.pin !== pin) return false;
-
-        const email = `user_${user.id}@latrampa.com`;
-        const password = pin + pin; // Repeat PIN to satisfy Firebase 6-char requirement (4+4=8)
+        const email = `user_${memberId}@latrampa.com`;
+        const password = pin + pin;
 
         try {
             await signInWithEmailAndPassword(auth, email, password);
             return true;
         } catch (error) {
             console.log("[Auth] Sign in failed, attempting auto-registration:", error.code);
-            // If user doesn't exist, create it (Auto-migration)
             if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-                try {
-                    await createUserWithEmailAndPassword(auth, email, password);
-                    return true;
-                } catch (regError) {
-                    console.error("[Auth] Registration failed:", regError);
-                    return false;
+                // Pre-check if PIN matches our local master list (migration only)
+                const user = USERS_DATA.find(u => u.id === parseInt(memberId));
+                if (user && user.pin === pin) {
+                    try {
+                        await createUserWithEmailAndPassword(auth, email, password);
+                        return true;
+                    } catch (regError) {
+                        return false;
+                    }
                 }
             }
             return false;
@@ -167,31 +231,21 @@ export const AppProvider = ({ children }) => {
     };
 
     const addTransaction = async (transaction) => {
-        console.log("[Firestore] Attempting to write transaction:", transaction);
         try {
             const newTx = {
                 ...transaction,
                 timestamp: serverTimestamp()
             };
-            const docRef = await addDoc(collection(db, "transactions"), newTx);
-            console.log("[Firestore] Successfully wrote document with ID:", docRef.id);
+            await addDoc(collection(db, "transactions"), newTx);
         } catch (error) {
-            console.error("[Firestore] Error adding transaction:", error);
-            if (error.code === 'permission-denied') {
-                showToast("Error: No tienes permiso para escribir transacciones.");
-            } else {
-                showToast(`Error al guardar: ${error.message}`);
-            }
+            showToast(`Error al guardar: ${error.message}`);
         }
     };
 
     const promptToInstall = async () => {
         if (!installPrompt) return;
         installPrompt.prompt();
-        // Wait for the user to respond to the prompt
         const { outcome } = await installPrompt.userChoice;
-        console.log(`User response to the install prompt: ${outcome}`);
-        // We've used the prompt, so clear it
         setInstallPrompt(null);
     };
 
@@ -201,10 +255,13 @@ export const AppProvider = ({ children }) => {
     };
 
     const value = {
-        members: USERS_DATA.map(({ pin, ...user }) => user),
+        members,
+        catalog,
+        appSettings,
         transactions,
         currentUser,
         loadingAuth,
+        loadingData,
         getMemberBalance,
         getPotBalance,
         addTransaction,
