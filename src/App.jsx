@@ -11,8 +11,16 @@ import { useApp } from './context/AppContext';
 import Login from './views/Login';
 
 function AppContent() {
-  const { currentUser, notification } = useApp();
+  const { currentUser, notification, loadingAuth } = useApp();
   const [activeTab, setActiveTab] = useState('home');
+
+  if (loadingAuth) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ color: 'var(--primary)', fontWeight: 'bold' }}>Cargando...</div>
+      </div>
+    );
+  }
 
   if (!currentUser) {
     return <Login />;

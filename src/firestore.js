@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
     apiKey: "AIzaSyC3BQQwyweOOfkJ7rv7qDtDzE_UNcoB2tY",
@@ -13,4 +14,5 @@ const firebaseConfig = {
 console.log("[Firestore] Initializing with inlined config:", firebaseConfig.projectId);
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
-console.log("[Firestore] DB object created.");
+export const auth = getAuth(app);
+console.log("[Firestore] DB and Auth objects created.");

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { db } from '../firestore';
+import { db, auth } from '../firestore';
 import {
     collection,
     addDoc,
@@ -8,6 +8,12 @@ import {
     orderBy,
     serverTimestamp
 } from 'firebase/firestore';
+import {
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    onAuthStateChanged,
+    signOut
+} from 'firebase/auth';
 
 const AppContext = createContext();
 
@@ -26,28 +32,42 @@ const USERS_DATA = [
     { id: 12, name: 'Nuria', pin: '9221' },
 ];
 
-const VERSION = "1.0.4 - Diagnostic Mode";
+const VERSION = "1.1.0 - Firebase Auth Mode";
 
 export const AppProvider = ({ children }) => {
-    useEffect(() => {
-        console.log(`[App] Version: ${VERSION}`);
-        console.log("[App] Config Check:", {
-            apiKey: !!import.meta.env.VITE_FIREBASE_API_KEY,
-            projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-            authDomain: !!import.meta.env.VITE_FIREBASE_AUTH_DOMAIN
-        });
-    }, []);
-    // Members are now static based on USERS_DATA
-    const members = USERS_DATA.map(u => ({ id: u.id, name: u.name }));
-
     const [transactions, setTransactions] = useState([]);
-
-    const [currentUser, setCurrentUser] = useState(() => {
-        const saved = localStorage.getItem('currentUser');
-        return saved ? JSON.parse(saved) : null;
-    });
+    const [currentUser, setCurrentUser] = useState(null);
+    const [loadingAuth, setLoadingAuth] = useState(true);
     const [installPrompt, setInstallPrompt] = useState(null);
     const [notification, setNotification] = useState(null);
+
+    // Members are static based on USERS_DATA
+    const members = USERS_DATA.map(u => ({ id: u.id, name: u.name }));
+
+    useEffect(() => {
+        console.log(`[App] Version: ${VERSION}`);
+    }, []);
+
+    // Firebase Auth Listener
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Fictitious email format: user_{id}@latrampa.com
+                const match = user.email.match(/user_(\d+)@latrampa\.com/);
+                if (match) {
+                    const userId = parseInt(match[1]);
+                    const userData = USERS_DATA.find(u => u.id === userId);
+                    if (userData) {
+                        setCurrentUser({ id: userData.id, name: userData.name });
+                    }
+                }
+            } else {
+                setCurrentUser(null);
+            }
+            setLoadingAuth(false);
+        });
+        return () => unsubscribe();
+    }, []);
 
     useEffect(() => {
         const handler = (e) => {
@@ -63,21 +83,17 @@ export const AppProvider = ({ children }) => {
         console.log("[Firestore] Setting up listener for 'transactions' collection...");
         const q = query(collection(db, "transactions"), orderBy("timestamp", "desc"));
         const unsubscribe = onSnapshot(q, (querySnapshot) => {
-            console.log(`[Firestore] Received update: ${querySnapshot.size} documents found.`);
             const txs = [];
             querySnapshot.forEach((doc) => {
-                // Map Firestore doc to our transaction structure
                 const data = doc.data();
                 txs.push({
                     ...data,
-                    id: doc.id, // Use Firestore ID
-                    // Convert Firestore timestamp or use the saved ISO string if it exists. Fallback for pending server timestamps.
+                    id: doc.id,
                     timestamp: data.timestamp?.toDate
                         ? data.timestamp.toDate().toISOString()
                         : (data.timestamp || new Date().toISOString())
                 });
             });
-            console.log("[Firestore] Transactions state updated in Context.");
             setTransactions(txs);
         }, (error) => {
             console.error("[Firestore] Error in onSnapshot:", error);
@@ -90,26 +106,38 @@ export const AppProvider = ({ children }) => {
         return () => unsubscribe();
     }, []);
 
-    useEffect(() => {
-        if (currentUser) {
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
-        } else {
-            localStorage.removeItem('currentUser');
-        }
-    }, [currentUser]);
-
-    const login = (memberId, pin) => {
+    const login = async (memberId, pin) => {
         const user = USERS_DATA.find(u => u.id === parseInt(memberId));
-        // Master PIN "riki" allows login as any valid user
-        if (user && (pin === 'riki' || user.pin === pin)) {
-            setCurrentUser({ id: user.id, name: user.name });
+        if (!user || user.pin !== pin) return false;
+
+        const email = `user_${user.id}@latrampa.com`;
+        const password = pin; // Using PIN as password for now as requested
+
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
             return true;
+        } catch (error) {
+            console.log("[Auth] Sign in failed, attempting auto-registration:", error.code);
+            // If user doesn't exist, create it (Auto-migration)
+            if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+                try {
+                    await createUserWithEmailAndPassword(auth, email, password);
+                    return true;
+                } catch (regError) {
+                    console.error("[Auth] Registration failed:", regError);
+                    return false;
+                }
+            }
+            return false;
         }
-        return false;
     };
 
-    const logout = () => {
-        setCurrentUser(null);
+    const logout = async () => {
+        try {
+            await signOut(auth);
+        } catch (error) {
+            console.error("[Auth] Sign out error:", error);
+        }
     };
 
     const getMemberBalance = (memberId) => {
@@ -176,6 +204,7 @@ export const AppProvider = ({ children }) => {
         members: USERS_DATA.map(({ pin, ...user }) => user),
         transactions,
         currentUser,
+        loadingAuth,
         getMemberBalance,
         getPotBalance,
         addTransaction,

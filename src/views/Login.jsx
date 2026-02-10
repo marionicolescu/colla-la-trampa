@@ -7,18 +7,20 @@ export default function Login() {
     const [pin, setPin] = useState('');
     const [error, setError] = useState('');
 
-    const handleSubmit = (e) => {
+    const [loading, setLoading] = useState(false);
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!selectedUser) {
             setError('Selecciona un usuario');
             return;
         }
-        const success = login(selectedUser, pin);
+        setLoading(true);
+        setError('');
+        const success = await login(selectedUser, pin);
+        setLoading(false);
         if (!success) {
-            setError('PIN incorrecto');
+            setError('PIN incorrecto o error de conexión');
             setPin('');
-        } else {
-            setError('');
         }
     };
 
@@ -96,8 +98,9 @@ export default function Login() {
                         type="submit"
                         className="btn btn-primary"
                         style={{ marginTop: '1rem', padding: '0.875rem' }}
+                        disabled={loading}
                     >
-                        Entrar
+                        {loading ? 'Entrando...' : 'Entrar'}
                     </button>
                 </form>
             </div>
