@@ -4,7 +4,7 @@ import { ArrowUpIcon, ArrowDownIcon, ShoppingCartIcon, CurrencyEuroIcon } from '
 
 export default function History() {
     const { transactions, members } = useApp();
-    const [filter, setFilter] = useState('ALL'); // ALL, CONSUMPTION, PAYMENT, PURCHASE_BOTE
+    const [filter, setFilter] = useState('ALL'); // ALL,  CONSUMPTION, PAYMENT, PURCHASE_BOTE
 
     const filtered = transactions.filter(t => {
         if (filter === 'ALL') return true;
