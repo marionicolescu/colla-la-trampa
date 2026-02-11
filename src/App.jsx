@@ -35,10 +35,14 @@ function AppContent() {
         padding: '2rem',
         backgroundColor: '#F3F4F6'
       }}>
-        <div style={{ fontSize: '5rem', marginBottom: '1rem' }}>💤</div>
+        <img
+          src="https://media4.giphy.com/media/v1.Y2lkPTZjMDliOTUyZmp2N29kN3Iwb2doZTRyY3prZzRrd2JxMW9lbjRxM3Y5aHYyZmJldCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/SS4imysASHTHUsXyt6/giphy.gif"
+          alt="Mantenimiento"
+          style={{ maxWidth: '300px', marginBottom: '2rem', borderRadius: '1rem' }}
+        />
         <h1 style={{ color: 'var(--primary)', marginBottom: '1rem' }}>Modo Mantenimiento</h1>
         <p style={{ color: 'var(--text-secondary)', maxWidth: '400px' }}>
-          Estamos ajustando los barriles y contando las monedas.
+          Estamos limpiando las potas y contando las monedas.
           ¡Volvemos enseguida!
         </p>
       </div>
