@@ -38,7 +38,7 @@ function AppContent() {
         <img
           src="https://media4.giphy.com/media/v1.Y2lkPTZjMDliOTUyZmp2N29kN3Iwb2doZTRyY3prZzRrd2JxMW9lbjRxM3Y5aHYyZmJldCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/SS4imysASHTHUsXyt6/giphy.gif"
           alt="Mantenimiento"
-          style={{ maxWidth: '300px', marginBottom: '2rem', borderRadius: '1rem', border: '2px solid var(--primary)', boxShadow: '0 0 20px rgba(217, 70, 239, 0.3)' }}
+          style={{ maxWidth: '300px', marginBottom: '2rem', borderRadius: '1rem' }}
         />
         <h1 style={{ color: 'var(--primary)', marginBottom: '1rem', fontWeight: 'bold' }}>Modo Mantenimiento</h1>
         <p style={{ color: 'var(--text-secondary)', maxWidth: '400px', fontWeight: 500 }}>
