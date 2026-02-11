@@ -1,12 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import Modal from '../components/Modal';
-import { ArrowUpIcon, ArrowDownIcon, ShoppingCartIcon, CurrencyEuroIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
+import { ArrowUpIcon, ArrowDownIcon, ShoppingCartIcon, CurrencyEuroIcon, ArrowRightOnRectangleIcon, ClockIcon } from '@heroicons/react/24/outline';
 
 export default function Home() {
     const { members, transactions, currentUser, getMemberBalance, getPotBalance, addTransaction, logout, installPrompt, promptToInstall, appSettings } = useApp();
     const [selectedMember, setSelectedMember] = useState(null);
     const [showSettleConfirm, setShowSettleConfirm] = useState(false);
+    const [secondsLeft, setSecondsLeft] = useState(0);
+
+    useEffect(() => {
+        const target = new Date('2026-03-07T12:00:00');
+        const updateCountdown = () => {
+            const now = new Date();
+            const diff = Math.floor((target - now) / 1000);
+            setSecondsLeft(diff > 0 ? diff : 0);
+        };
+        updateCountdown();
+        const interval = setInterval(updateCountdown, 1000);
+        return () => clearInterval(interval);
+    }, []);
 
     const potBalance = getPotBalance();
     const myBalance = getMemberBalance(currentUser.id);
@@ -63,22 +76,24 @@ export default function Home() {
                 </div>
             </div>
 
-            {appSettings?.motd && (
+            {secondsLeft > 0 && (
                 <div style={{
-                    backgroundColor: '#DBEAFE',
-                    color: '#1E40AF',
+                    backgroundColor: 'rgba(217, 70, 239, 0.1)',
+                    color: 'var(--primary)',
                     padding: '1rem',
-                    borderRadius: '0.75rem',
+                    borderRadius: '1rem',
                     marginBottom: '1rem',
-                    border: '1px solid #BFDBFE',
-                    fontSize: '0.9rem',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                    border: '1px solid rgba(217, 70, 239, 0.2)',
+                    fontSize: '0.9375rem',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.75rem'
+                    gap: '0.75rem',
+                    boxShadow: '0 4px 12px -2px rgba(217, 70, 239, 0.15)'
                 }}>
-                    <span style={{ fontSize: '1.2rem' }}>📢</span>
-                    <span style={{ fontWeight: 500 }}>{appSettings.motd}</span>
+                    <ClockIcon style={{ width: '1.25rem', height: '1.25rem', color: 'var(--primary)' }} />
+                    <div style={{ fontWeight: 700, letterSpacing: '-0.01em' }}>
+                        Quedan <span style={{ fontFamily: 'monospace', fontSize: '1.1rem' }}>{secondsLeft}</span> para Magdalena
+                    </div>
                 </div>
             )}
 
