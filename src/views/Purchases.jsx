@@ -46,7 +46,7 @@ export default function Purchases() {
         <div className="container" style={{ backgroundColor: 'var(--bg-app)', minHeight: '100vh' }}>
             <h2 style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--text-primary)' }}>Registrar Compra</h2>
 
-            <div className="flex gap-sm mb-md" style={{ backgroundColor: 'var(--border)', padding: '0.25rem', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
+            <div className="flex gap-sm mb-md" style={{ backgroundColor: 'var(--border)', padding: '0.25rem', borderRadius: '2rem', border: '1px solid var(--border)' }}>
                 <button
                     className="btn"
                     onClick={() => setActiveTab('PURCHASE_BOTE')}
@@ -56,7 +56,10 @@ export default function Purchases() {
                         color: activeTab === 'PURCHASE_BOTE' ? 'white' : 'var(--text-secondary)',
                         fontWeight: 600,
                         fontSize: '0.875rem',
-                        transition: 'all 0.2s'
+                        transition: 'all 0.2s',
+                        borderRadius: '1.5rem',
+                        padding: '0.5rem 1.5rem',
+                        border: 'none'
                     }}
                 >
                     Compra del bote
@@ -70,7 +73,10 @@ export default function Purchases() {
                         color: activeTab === 'ADVANCE' ? 'white' : 'var(--text-secondary)',
                         fontWeight: 600,
                         fontSize: '0.875rem',
-                        transition: 'all 0.2s'
+                        transition: 'all 0.2s',
+                        borderRadius: '1.5rem',
+                        padding: '0.5rem 1.5rem',
+                        border: 'none'
                     }}
                 >
                     Anticipo de miembro
