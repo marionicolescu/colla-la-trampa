@@ -78,21 +78,29 @@ export default function Home() {
 
             {secondsLeft > 0 && (
                 <div style={{
-                    backgroundColor: 'rgba(217, 70, 239, 0.1)',
-                    color: 'var(--primary)',
-                    padding: '1rem',
-                    borderRadius: '1rem',
-                    marginBottom: '1rem',
-                    border: '1px solid rgba(217, 70, 239, 0.2)',
-                    fontSize: '0.9375rem',
+                    background: 'linear-gradient(135deg, #701a75 0%, #d946ef 100%)',
+                    color: 'white',
+                    padding: '1.25rem',
+                    borderRadius: '1.25rem',
+                    marginBottom: '1.5rem',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.75rem',
-                    boxShadow: '0 4px 12px -2px rgba(217, 70, 239, 0.15)'
+                    gap: '1rem',
+                    boxShadow: '0 10px 25px -5px rgba(217, 70, 239, 0.4)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)'
                 }}>
-                    <ClockIcon style={{ width: '1.25rem', height: '1.25rem', color: 'var(--primary)' }} />
-                    <div style={{ fontWeight: 700, letterSpacing: '-0.01em' }}>
-                        Quedan <span style={{ fontFamily: 'monospace', fontSize: '1.1rem' }}>{secondsLeft}</span> para Magdalena
+                    <div style={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                        padding: '0.75rem',
+                        borderRadius: '1rem',
+                        display: 'flex'
+                    }}>
+                        <ClockIcon style={{ width: '1.5rem', height: '1.5rem', color: 'white' }} />
+                    </div>
+                    <div>
+                        <div style={{ fontSize: '1.25rem', fontWeight: 900, letterSpacing: '-0.025em' }}>
+                            Quedan <span style={{ fontFamily: 'monospace', fontSize: '1.6rem', textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>{secondsLeft.toLocaleString()}</span>segundos para Magdalena
+                        </div>
                     </div>
                 </div>
             )}
