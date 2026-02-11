@@ -15,16 +15,6 @@
   /* Muted Gray */
   --border: #262626;
   /* Dark Border */
-  --border-light: rgba(255, 255, 255, 0.08);
-  --bg-glass: rgba(18, 18, 18, 0.7);
-  --bg-glass-heavy: rgba(10, 10, 10, 0.9);
-
-  /* Gradients & Glows */
-  --primary-gradient: linear-gradient(135deg, #d946ef 0%, #7c3aed 100%);
-  --surface-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 100%);
-  --glow-primary: 0 0 20px rgba(217, 70, 239, 0.3);
-  --glow-success: 0 0 15px rgba(16, 185, 129, 0.2);
-  --glow-danger: 0 0 15px rgba(239, 68, 68, 0.2);
 
   /* Typography */
   --font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
@@ -63,10 +53,6 @@
 body {
   font-family: var(--font-family);
   background-color: var(--bg-app);
-  background-image:
-    radial-gradient(at 0% 0%, rgba(217, 70, 239, 0.08) 0, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(124, 58, 237, 0.05) 0, transparent 50%);
-  background-attachment: fixed;
   color: var(--text-primary);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -77,7 +63,7 @@ body {
   /* Mobile constraint */
   margin: 0 auto;
   min-height: 100vh;
-  background-color: transparent;
+  background-color: var(--bg-surface);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -89,15 +75,12 @@ body {
 }
 
 .card {
-  background-color: var(--bg-glass);
-  background-image: var(--surface-gradient);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-light);
-  border-radius: 1.25rem;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   padding: var(--spacing-md);
   margin-bottom: var(--spacing-sm);
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-sm);
 }
 
 .btn {
@@ -113,14 +96,12 @@ body {
 }
 
 .btn-primary {
-  background: var(--primary-gradient);
+  background-color: var(--primary);
   color: white;
-  box-shadow: 0 4px 15px rgba(217, 70, 239, 0.3);
 }
 
 .btn-primary:active {
-  transform: scale(0.98);
-  opacity: 0.9;
+  background-color: var(--primary-dark);
 }
 
 .text-danger {
