@@ -60,8 +60,8 @@ export default function History() {
     };
 
     return (
-        <div className="container">
-            <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>Historial</h2>
+        <div className="container" style={{ backgroundColor: 'var(--bg-app)', minHeight: '100vh' }}>
+            <h2 style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--text-primary)' }}>Historial</h2>
 
             {/* Filters */}
             <div className="flex gap-sm mb-md" style={{ overflowX: 'auto', paddingBottom: '0.5rem' }}>
@@ -77,12 +77,14 @@ export default function History() {
                         style={{
                             padding: '0.5rem 1rem',
                             borderRadius: '999px',
-                            border: 'none',
-                            backgroundColor: filter === f.id ? '#1E293B' : '#E5E7EB',
-                            color: filter === f.id ? 'white' : '#4B5563',
-                            fontWeight: 500,
+                            border: '1px solid var(--border)',
+                            backgroundColor: filter === f.id ? 'var(--primary)' : 'var(--bg-surface)',
+                            color: filter === f.id ? 'white' : 'var(--text-secondary)',
+                            fontWeight: 600,
+                            fontSize: '0.8125rem',
                             whiteSpace: 'nowrap',
-                            cursor: 'pointer'
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
                         }}
                     >
                         {f.label}
@@ -97,10 +99,10 @@ export default function History() {
                     const dateStr = date.toLocaleDateString() + ' · ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
                     return (
-                        <div key={t.id} className="card flex items-center gap-md" style={{ borderLeft: `4px solid ${borderColor}`, paddingLeft: '1rem' }}>
+                        <div key={t.id} className="card flex items-center gap-md" style={{ borderLeft: `4px solid ${borderColor}`, paddingLeft: '1rem', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)', borderLeftWidth: '4px' }}>
                             <div>{icon}</div>
                             <div style={{ flex: 1 }}>
-                                <div style={{ fontWeight: 600 }}>{title}</div>
+                                <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{title}</div>
                                 <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
                                     {t.description || t.type}
                                 </div>

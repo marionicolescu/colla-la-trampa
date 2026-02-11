@@ -158,10 +158,10 @@ export default function Statistics() {
     }, [rangeType, customDates, startOfWeek, now]);
 
     const getRankStyle = (rank) => {
-        if (rank === 1) return { background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)', border: '1px solid #FDE68A', color: '#92400E' };
-        if (rank === 2) return { background: 'linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%)', border: '1px solid #E5E7EB', color: '#374151' };
-        if (rank === 3) return { background: 'linear-gradient(135deg, #FFEDD5 0%, #FED7AA 100%)', border: '1px solid #FED7AA', color: '#9A3412' };
-        return { background: 'white', border: '1px solid var(--border)', color: 'var(--text-main)' };
+        if (rank === 1) return { background: 'linear-gradient(135deg, #FFD700 0%, #B8860B 100%)', border: '1px solid #FFD700', color: '#000' };
+        if (rank === 2) return { background: 'linear-gradient(135deg, #E5E7EB 0%, #9CA3AF 100%)', border: '1px solid #E5E7EB', color: '#000' };
+        if (rank === 3) return { background: 'linear-gradient(135deg, #D97706 0%, #92400E 100%)', border: '1px solid #D97706', color: '#000' };
+        return { background: 'var(--bg-surface)', border: '1px solid var(--border)', color: 'var(--text-primary)' };
     };
 
     const selectedMemberData = useMemo(() => {
@@ -188,13 +188,14 @@ export default function Statistics() {
                             padding: '0.5rem 1rem',
                             borderRadius: '999px',
                             border: 'none',
-                            backgroundColor: rangeType === r.id ? '#1E293B' : '#E5E7EB',
-                            color: rangeType === r.id ? 'white' : '#4B5563',
-                            fontWeight: 500,
-                            fontSize: '0.875rem',
+                            backgroundColor: rangeType === r.id ? 'var(--primary)' : 'var(--bg-surface)',
+                            color: rangeType === r.id ? 'white' : 'var(--text-secondary)',
+                            fontWeight: 600,
+                            fontSize: '0.8125rem',
                             whiteSpace: 'nowrap',
                             cursor: 'pointer',
-                            transition: 'all 0.2s'
+                            transition: 'all 0.2s',
+                            border: '1px solid var(--border)'
                         }}
                     >
                         {r.label}
@@ -208,13 +209,13 @@ export default function Statistics() {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.5rem',
-                    backgroundColor: '#F3F4F6',
+                    backgroundColor: 'var(--bg-surface)',
                     padding: '0.4rem 0.875rem',
                     borderRadius: '2rem',
                     fontSize: '0.8125rem',
-                    color: '#6B7280',
+                    color: 'var(--text-secondary)',
                     fontWeight: 600,
-                    border: '1px solid #E5E7EB'
+                    border: '1px solid var(--border)'
                 }}>
                     <CalendarIcon style={{ width: '0.875rem', height: '0.875rem' }} />
                     <span>{rangeHeader}</span>
@@ -225,7 +226,7 @@ export default function Statistics() {
                 <div className="flex gap-sm mb-md animated fadeIn">
                     <div style={{
                         flex: 1,
-                        backgroundColor: 'white',
+                        backgroundColor: 'var(--bg-surface)',
                         padding: '0.75rem',
                         borderRadius: '1rem',
                         border: '1px solid var(--border)',
@@ -233,31 +234,21 @@ export default function Statistics() {
                         flexDirection: 'column',
                         gap: '0.25rem'
                     }}>
-                        <span style={{ fontSize: '0.625rem', fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase' }}>Desde</span>
-                        <input
-                            type="date"
-                            value={customDates.start}
-                            onChange={e => setCustomDates(prev => ({ ...prev, start: e.target.value }))}
-                            style={{ border: 'none', background: 'none', fontSize: '1rem', color: 'var(--text-main)', padding: 0, outline: 'none', width: '100%' }}
-                        />
-                    </div>
-                    <div style={{
-                        flex: 1,
-                        backgroundColor: 'white',
-                        padding: '0.75rem',
-                        borderRadius: '1rem',
-                        border: '1px solid var(--border)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.25rem'
-                    }}>
-                        <span style={{ fontSize: '0.625rem', fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase' }}>Hasta</span>
-                        <input
-                            type="date"
-                            value={customDates.end}
-                            onChange={e => setCustomDates(prev => ({ ...prev, end: e.target.value }))}
-                            style={{ border: 'none', background: 'none', fontSize: '1rem', color: 'var(--text-main)', padding: 0, outline: 'none', width: '100%' }}
-                        />
+                        <span style={{ fontSize: '0.625rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Desde/Hasta</span>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <input
+                                type="date"
+                                value={customDates.start}
+                                onChange={e => setCustomDates(prev => ({ ...prev, start: e.target.value }))}
+                                style={{ border: 'none', background: 'none', fontSize: '0.875rem', color: 'var(--text-primary)', padding: 0, outline: 'none', width: '100%' }}
+                            />
+                            <input
+                                type="date"
+                                value={customDates.end}
+                                onChange={e => setCustomDates(prev => ({ ...prev, end: e.target.value }))}
+                                style={{ border: 'none', background: 'none', fontSize: '0.875rem', color: 'var(--text-primary)', padding: 0, outline: 'none', width: '100%' }}
+                            />
+                        </div>
                     </div>
                 </div>
             )}
@@ -331,16 +322,16 @@ export default function Statistics() {
                 }} onClick={() => setSelectedMemberId(null)}>
                     <div
                         className="card"
-                        style={{ width: '100%', maxWidth: '400px', padding: '1.5rem', position: 'relative', borderRadius: '2rem', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}
+                        style={{ width: '100%', maxWidth: '400px', padding: '1.5rem', position: 'relative', borderRadius: '2rem', boxShadow: 'var(--shadow-lg)', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}
                         onClick={e => e.stopPropagation()}
                     >
-                        <button onClick={() => setSelectedMemberId(null)} style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', border: 'none', background: 'none' }}>
-                            <XMarkIcon style={{ width: '1.5rem', color: '#9CA3AF' }} />
+                        <button onClick={() => setSelectedMemberId(null)} style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', border: 'none', background: 'none', cursor: 'pointer' }}>
+                            <XMarkIcon style={{ width: '1.5rem', color: 'var(--text-secondary)' }} />
                         </button>
 
                         <div className="mb-md">
-                            <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.25rem' }}>{selectedMemberData.name}</h3>
-                            <div style={{ fontSize: '0.8125rem', color: '#6B7280', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                            <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.25rem', color: 'var(--text-primary)' }}>{selectedMemberData.name}</h3>
+                            <div style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
                                 <CalendarIcon style={{ width: '0.875rem' }} />
                                 {rangeHeader}
                             </div>
@@ -355,12 +346,12 @@ export default function Statistics() {
                                     flexDirection: 'column',
                                     alignItems: 'center',
                                     position: 'relative',
-                                    border: '1px solid #F3F4F6',
-                                    background: '#F9FAFB',
+                                    border: '1px solid var(--border)',
+                                    background: 'var(--bg-app)',
                                     borderRadius: '1.25rem'
                                 }}>
                                     <div style={{ fontSize: '2.25rem', marginBottom: '0.5rem' }}>{CATALOG_ICONS[name] || '🥤'}</div>
-                                    <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#4B5563' }}>{name}</div>
+                                    <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-primary)' }}>{name}</div>
                                     <div style={{
                                         position: 'absolute',
                                         top: '-0.375rem',
@@ -389,8 +380,8 @@ export default function Statistics() {
                             )}
                         </div>
 
-                        <div style={{ borderTop: '1px solid #F3F4F6', paddingTop: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontWeight: 500, color: '#6B7280' }}>Total gastado</span>
+                        <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>Total gastado</span>
                             <span style={{ fontWeight: 600, color: 'var(--primary)', fontSize: '1.5rem' }}>{selectedMemberData.totalAmount.toFixed(2)} €</span>
                         </div>
                     </div>

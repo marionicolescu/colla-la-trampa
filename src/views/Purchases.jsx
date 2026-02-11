@@ -43,10 +43,10 @@ export default function Purchases() {
     };
 
     return (
-        <div className="container">
-            <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>Registrar Compra</h2>
+        <div className="container" style={{ backgroundColor: 'var(--bg-app)', minHeight: '100vh' }}>
+            <h2 style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--text-primary)' }}>Registrar Compra</h2>
 
-            <div className="flex gap-sm mb-md" style={{ backgroundColor: '#E5E7EB', padding: '0.25rem', borderRadius: '0.5rem' }}>
+            <div className="flex gap-sm mb-md" style={{ backgroundColor: 'var(--border)', padding: '0.25rem', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
                 <button
                     className="btn"
                     onClick={() => setActiveTab('PURCHASE_BOTE')}
@@ -54,7 +54,9 @@ export default function Purchases() {
                         flex: 1,
                         backgroundColor: activeTab === 'PURCHASE_BOTE' ? 'var(--primary)' : 'transparent',
                         color: activeTab === 'PURCHASE_BOTE' ? 'white' : 'var(--text-secondary)',
-                        boxShadow: activeTab === 'PURCHASE_BOTE' ? 'var(--shadow-sm)' : 'none'
+                        fontWeight: 600,
+                        fontSize: '0.875rem',
+                        transition: 'all 0.2s'
                     }}
                 >
                     Compra del bote
@@ -66,15 +68,17 @@ export default function Purchases() {
                         flex: 1,
                         backgroundColor: activeTab === 'ADVANCE' ? 'var(--primary)' : 'transparent',
                         color: activeTab === 'ADVANCE' ? 'white' : 'var(--text-secondary)',
-                        boxShadow: activeTab === 'ADVANCE' ? 'var(--shadow-sm)' : 'none'
+                        fontWeight: 600,
+                        fontSize: '0.875rem',
+                        transition: 'all 0.2s'
                     }}
                 >
                     Anticipo de miembro
                 </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="card flex flex-col gap-md">
-                <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
+            <form onSubmit={handleSubmit} className="card flex flex-col gap-md" style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
+                <div style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem', fontWeight: 500 }}>
                     {activeTab === 'PURCHASE_BOTE'
                         ? 'Registra una compra pagada con dinero del bote (reduce el saldo del bote).'
                         : 'Registra dinero aportado por ti al bote (aumenta tu saldo a favor).'
@@ -82,8 +86,8 @@ export default function Purchases() {
                 </div>
 
                 <div>
-                    <label style={{ display: 'block', fontWeight: 500, marginBottom: '0.5rem' }}>Importe *</label>
-                    <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '0 0.75rem' }}>
+                    <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.8125rem', textTransform: 'uppercase' }}>Importe *</label>
+                    <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '0 0.75rem', backgroundColor: 'var(--bg-app)' }}>
                         <input
                             type="number"
                             step="0.01"
@@ -94,17 +98,19 @@ export default function Purchases() {
                                 border: 'none',
                                 outline: 'none',
                                 flex: 1,
-                                padding: '0.75rem 0',
-                                fontSize: '1rem'
+                                padding: '1rem 0',
+                                fontSize: '1.25rem',
+                                backgroundColor: 'transparent',
+                                color: 'var(--text-primary)'
                             }}
                             required
                         />
-                        <span style={{ color: 'var(--text-secondary)' }}>€</span>
+                        <span style={{ color: 'var(--text-secondary)', fontWeight: 'bold' }}>€</span>
                     </div>
                 </div>
 
                 <div>
-                    <label style={{ display: 'block', fontWeight: 500, marginBottom: '0.5rem' }}>Nota (opcional)</label>
+                    <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.8125rem', textTransform: 'uppercase' }}>Nota (opcional)</label>
                     <input
                         type="text"
                         value={note}
@@ -112,11 +118,13 @@ export default function Purchases() {
                         placeholder="ej. Alcohol weekend"
                         style={{
                             width: '100%',
-                            padding: '0.75rem',
+                            padding: '1rem',
                             border: '1px solid var(--border)',
                             borderRadius: 'var(--radius-md)',
                             fontSize: '1rem',
-                            outline: 'none'
+                            outline: 'none',
+                            backgroundColor: 'var(--bg-app)',
+                            color: 'var(--text-primary)'
                         }}
                     />
                 </div>

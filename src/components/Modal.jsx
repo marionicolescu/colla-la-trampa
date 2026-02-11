@@ -11,7 +11,8 @@ export default function Modal({ isOpen, onClose, title, children }) {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            backdropFilter: 'blur(4px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -37,7 +38,7 @@ export default function Modal({ isOpen, onClose, title, children }) {
                     padding: '1rem',
                     borderBottom: '1px solid var(--border)'
                 }}>
-                    <h3 style={{ margin: 0, fontSize: '1.25rem' }}>{title}</h3>
+                    <h3 style={{ margin: 0, fontSize: '1.25rem', color: 'var(--text-primary)' }}>{title}</h3>
                     <button
                         onClick={onClose}
                         style={{

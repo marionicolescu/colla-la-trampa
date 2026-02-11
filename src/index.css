@@ -1,17 +1,23 @@
 :root {
-  /* Colors */
-  --primary: #2563EB;
-  --primary-dark: #1D4ED8;
-  --danger: #EF4444;
-  --success: #10B981;
-  --bg-app: #F3F4F6;
-  --bg-surface: #FFFFFF;
-  --text-primary: #1F2937;
-  --text-secondary: #6B7280;
-  --border: #E5E7EB;
+  /* Colors - Fuchsia & Black Theme */
+  --primary: #d946ef;
+  /* Vibrant Fuchsia */
+  --primary-dark: #c026d3;
+  --danger: #ef4444;
+  --success: #10b981;
+  --bg-app: #0a0a0a;
+  /* Pure Black */
+  --bg-surface: #171717;
+  /* Dark Gray Surface */
+  --text-primary: #f9fafb;
+  /* Near White */
+  --text-secondary: #a3a3a3;
+  /* Muted Gray */
+  --border: #262626;
+  /* Dark Border */
 
   /* Typography */
-  --font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
   --text-base: 1rem;

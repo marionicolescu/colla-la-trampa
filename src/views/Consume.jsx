@@ -65,23 +65,23 @@ export default function Consume() {
     const itemCount = Object.values(cart).reduce((a, b) => a + b, 0);
 
     return (
-        <div className="container" style={{ paddingBottom: '5rem' }}>
-            <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>Consumir</h2>
+        <div className="container" style={{ paddingBottom: '5rem', backgroundColor: 'var(--bg-app)', minHeight: '100vh', color: 'var(--text-primary)' }}>
+            <h2 style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--text-primary)' }}>Consumir</h2>
 
             {/* User Toggle */}
             <div className="flex flex-col items-center mb-md">
-                <div style={{ background: '#E5E7EB', borderRadius: '2rem', padding: '0.25rem', display: 'flex' }}>
+                <div style={{ background: 'var(--border)', border: '1px solid var(--border)', borderRadius: '2rem', padding: '0.25rem', display: 'flex' }}>
                     <button
                         onClick={() => setIsGuest(false)}
                         style={{
                             padding: '0.5rem 1.5rem',
                             borderRadius: '1.5rem',
                             border: 'none',
-                            background: !isGuest ? 'white' : 'transparent',
-                            color: !isGuest ? 'var(--primary)' : 'var(--text-secondary)',
-                            boxShadow: !isGuest ? 'var(--shadow-sm)' : 'none',
-                            fontWeight: 500,
-                            cursor: 'pointer'
+                            background: !isGuest ? 'var(--primary)' : 'transparent',
+                            color: !isGuest ? 'white' : 'var(--text-secondary)',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
                         }}
                     >
                         Yo
@@ -92,11 +92,11 @@ export default function Consume() {
                             padding: '0.5rem 1.5rem',
                             borderRadius: '1.5rem',
                             border: 'none',
-                            background: isGuest ? 'white' : 'transparent',
-                            color: isGuest ? 'var(--primary)' : 'var(--text-secondary)',
-                            boxShadow: isGuest ? 'var(--shadow-sm)' : 'none',
-                            fontWeight: 500,
-                            cursor: 'pointer'
+                            background: isGuest ? 'var(--primary)' : 'transparent',
+                            color: isGuest ? 'white' : 'var(--text-secondary)',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
                         }}
                     >
                         Invitado
@@ -105,12 +105,13 @@ export default function Consume() {
                 {isGuest && (
                     <div style={{
                         marginTop: '0.75rem',
-                        fontSize: '0.875rem',
-                        fontWeight: 500,
-                        backgroundColor: '#FEF3C7',
-                        color: '#D97706',
-                        padding: '0.25rem 0.75rem',
-                        borderRadius: '1rem'
+                        fontSize: '0.8125rem',
+                        fontWeight: 600,
+                        backgroundColor: 'rgba(217, 70, 239, 0.1)',
+                        color: 'var(--primary)',
+                        padding: '0.375rem 1rem',
+                        borderRadius: '1rem',
+                        border: '1px solid rgba(217, 70, 239, 0.2)'
                     }}>
                         Modo Invitado activo · Precios con recargo
                     </div>
@@ -134,16 +135,19 @@ export default function Consume() {
                                 justifyContent: 'center',
                                 padding: '1.5rem',
                                 position: 'relative',
-                                border: qty > 0 ? '2px solid var(--primary)' : '1px solid var(--border)'
+                                backgroundColor: 'var(--bg-surface)',
+                                border: qty > 0 ? '2px solid var(--primary)' : '1px solid var(--border)',
+                                color: 'var(--text-primary)',
+                                transition: 'all 0.2s'
                             }}
                         >
                             <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>{item.icon}</div>
-                            <div style={{ fontWeight: 600 }}>{item.name}</div>
+                            <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{item.name}</div>
 
                             {isGuest ? (
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                     <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textDecoration: 'line-through' }}>{item.price.toFixed(2)} €</div>
-                                    <div style={{ color: '#D97706', fontWeight: 'bold' }}>{item.guestPrice.toFixed(2)} €</div>
+                                    <div style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{item.guestPrice.toFixed(2)} €</div>
                                 </div>
                             ) : (
                                 <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>{item.price.toFixed(2)} €</div>

@@ -42,15 +42,15 @@ export default function Home() {
     };
 
     return (
-        <div className="container" style={{ backgroundColor: '#F3F4F6', minHeight: '100vh', padding: '1rem' }}>
+        <div className="container" style={{ backgroundColor: 'var(--bg-app)', minHeight: '100vh', padding: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '1rem 0' }}>
-                <h1 style={{ margin: 0, fontSize: '1.25rem' }}>Colla LA TRAMPA</h1>
+                <h1 style={{ margin: 0, fontSize: '1.25rem', color: 'var(--text-primary)' }}>Colla LA TRAMPA</h1>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                     {installPrompt && (
                         <button
                             onClick={promptToInstall}
                             style={{
-                                background: 'white', border: '1px solid var(--primary)', color: 'var(--primary)',
+                                background: 'transparent', border: '1px solid var(--primary)', color: 'var(--primary)',
                                 padding: '0.25rem 0.75rem', borderRadius: '0.5rem', fontWeight: 'bold'
                             }}
                         >
@@ -98,12 +98,12 @@ export default function Home() {
             </div>
 
             {/* Pending Card */}
-            <div className="card" style={{ textAlign: 'center', backgroundColor: '#F9FAFB' }}>
+            <div className="card" style={{ textAlign: 'center', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
                 <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Pendiente total</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{fmt(totalPending)}</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>{fmt(totalPending)}</div>
             </div>
 
-            <h3 className="mb-md">Miembros</h3>
+            <h3 className="mb-md" style={{ color: 'var(--text-primary)' }}>Miembros</h3>
 
             <div className="flex flex-col gap-sm">
                 {[...members]
@@ -125,11 +125,12 @@ export default function Home() {
                                 style={{
                                     padding: '1rem',
                                     cursor: 'pointer',
-                                    backgroundColor: isMe ? '#EFF6FF' : 'white',
+                                    backgroundColor: isMe ? 'rgba(217, 70, 239, 0.1)' : 'var(--bg-surface)',
                                     border: isMe ? '1px solid var(--primary)' : '1px solid var(--border)',
-                                    boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+                                    boxShadow: isMe ? '0 0 10px rgba(217, 70, 239, 0.2)' : 'var(--shadow-sm)',
                                     marginBottom: isMe ? '1.5rem' : '0.5rem',
-                                    borderRadius: '0.5rem'
+                                    borderRadius: '0.5rem',
+                                    color: 'var(--text-primary)'
                                 }}
                                 onClick={() => setSelectedMember(member)}
                             >
@@ -250,7 +251,7 @@ export default function Home() {
                         <button
                             className="btn"
                             onClick={() => setShowSettleConfirm(false)}
-                            style={{ flex: 1, border: '1px solid var(--border)' }}
+                            style={{ flex: 1, border: '1px solid var(--border)', backgroundColor: 'transparent', color: 'var(--text-primary)' }}
                         >
                             Cancelar
                         </button>
