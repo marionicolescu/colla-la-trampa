@@ -32,8 +32,7 @@ function AppContent() {
         alignItems: 'center',
         justifyContent: 'center',
         textAlign: 'center',
-        padding: '2rem',
-        backgroundColor: 'var(--bg-surface)'
+        padding: '2rem'
       }}>
         <img
           src="https://media4.giphy.com/media/v1.Y2lkPTZjMDliOTUyZmp2N29kN3Iwb2doZTRyY3prZzRrd2JxMW9lbjRxM3Y5aHYyZmJldCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/SS4imysASHTHUsXyt6/giphy.gif"

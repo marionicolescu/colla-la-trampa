@@ -65,7 +65,7 @@ export default function Consume() {
     const itemCount = Object.values(cart).reduce((a, b) => a + b, 0);
 
     return (
-        <div className="container" style={{ paddingBottom: '5rem', backgroundColor: 'var(--bg-app)', minHeight: '100vh', color: 'var(--text-primary)' }}>
+        <div className="container" style={{ paddingBottom: '5rem', minHeight: '100vh', color: 'var(--text-primary)' }}>
             <h2 style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--text-primary)' }}>Consumir</h2>
 
             {/* User Toggle */}

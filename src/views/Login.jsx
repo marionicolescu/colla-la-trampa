@@ -31,8 +31,7 @@ export default function Login() {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '1rem',
-            backgroundColor: 'var(--bg-app)'
+            padding: '1rem'
         }}>
             <div className="card" style={{ width: '100%', maxWidth: '400px', padding: '2.5rem', border: '1px solid var(--border)' }}>
                 <h1 style={{ textAlign: 'center', marginBottom: '2rem', color: 'var(--primary)', fontWeight: 'bold' }}>Colla LA TRAMPA</h1>

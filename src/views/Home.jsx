@@ -55,7 +55,7 @@ export default function Home() {
     };
 
     return (
-        <div className="container" style={{ backgroundColor: 'var(--bg-app)', minHeight: '100vh', padding: '1rem' }}>
+        <div className="container" style={{ minHeight: '100vh', padding: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '1rem 0' }}>
                 <h1 style={{ margin: 0, fontSize: '1.25rem', color: 'var(--text-primary)' }}>Colla LA TRAMPA</h1>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -100,8 +100,14 @@ export default function Home() {
                     }}>
                         <ClockIcon style={{ width: '1.25rem', height: '1.25rem', color: 'white' }} />
                     </div>
-                    <div style={{ fontSize: '1.1rem', fontWeight: 600, letterSpacing: '-0.01em' }}>
-                        Quedan <span style={{ fontFamily: 'monospace', fontWeight: 800, color: 'var(--primary)', fontSize: '1.3rem' }}>{secondsLeft.toLocaleString()}</span> segundos para Magdalena
+                    <div style={{ fontSize: '1.1rem', fontWeight: 600, letterSpacing: '-0.025em' }}>
+                        Quedan <span style={{
+                            fontWeight: 800,
+                            color: 'var(--primary)',
+                            fontSize: '1.3rem',
+                            fontVariantNumeric: 'tabular-nums',
+                            letterSpacing: '-0.05em'
+                        }}>{secondsLeft.toLocaleString()}</span> segundos para Magdalena
                     </div>
                 </div>
             )}

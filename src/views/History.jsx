@@ -60,7 +60,7 @@ export default function History() {
     };
 
     return (
-        <div className="container" style={{ backgroundColor: 'var(--bg-app)', minHeight: '100vh' }}>
+        <div className="container" style={{ minHeight: '100vh' }}>
             <h2 style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--text-primary)' }}>Historial</h2>
 
             {/* Filters */}

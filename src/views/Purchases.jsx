@@ -43,7 +43,7 @@ export default function Purchases() {
     };
 
     return (
-        <div className="container" style={{ backgroundColor: 'var(--bg-app)', minHeight: '100vh' }}>
+        <div className="container" style={{ minHeight: '100vh' }}>
             <h2 style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--text-primary)' }}>Registrar Compra</h2>
 
             <div className="flex gap-sm mb-md" style={{ backgroundColor: 'var(--border)', padding: '0.25rem', borderRadius: '2rem', border: '1px solid var(--border)' }}>
