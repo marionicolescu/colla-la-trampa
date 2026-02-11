@@ -78,29 +78,30 @@ export default function Home() {
 
             {secondsLeft > 0 && (
                 <div style={{
-                    background: 'linear-gradient(135deg, #701a75 0%, #d946ef 100%)',
-                    color: 'white',
-                    padding: '1.25rem',
-                    borderRadius: '1.25rem',
+                    background: 'rgba(217, 70, 239, 0.05)',
+                    backdropFilter: 'blur(10px)',
+                    WebkitBackdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(217, 70, 239, 0.3)',
+                    borderRadius: '1rem',
+                    padding: '1rem',
                     marginBottom: '1.5rem',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '1rem',
-                    boxShadow: '0 10px 25px -5px rgba(217, 70, 239, 0.4)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                    boxShadow: '0 0 20px rgba(217, 70, 239, 0.1)',
+                    color: 'var(--text-primary)'
                 }}>
                     <div style={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                        padding: '0.75rem',
-                        borderRadius: '1rem',
-                        display: 'flex'
+                        background: 'var(--primary)',
+                        padding: '0.6rem',
+                        borderRadius: '0.75rem',
+                        display: 'flex',
+                        boxShadow: '0 0 10px rgba(217, 70, 239, 0.3)'
                     }}>
-                        <ClockIcon style={{ width: '1.5rem', height: '1.5rem', color: 'white' }} />
+                        <ClockIcon style={{ width: '1.25rem', height: '1.25rem', color: 'white' }} />
                     </div>
-                    <div>
-                        <div style={{ fontSize: '1.25rem', fontWeight: 900, letterSpacing: '-0.025em' }}>
-                            Quedan <span style={{ fontFamily: 'monospace', fontSize: '1.6rem', textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>{secondsLeft.toLocaleString()}</span>segundos para Magdalena
-                        </div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 600, letterSpacing: '-0.01em' }}>
+                        Quedan <span style={{ fontFamily: 'monospace', fontWeight: 800, color: 'var(--primary)', fontSize: '1.3rem' }}>{secondsLeft.toLocaleString()}</span> segundos para Magdalena
                     </div>
                 </div>
             )}
