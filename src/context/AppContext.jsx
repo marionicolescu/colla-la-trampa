@@ -18,18 +18,18 @@ import {
 const AppContext = createContext();
 
 const USERS_DATA = [
-    { id: 1, name: 'Mario', pin: '4827' },
-    { id: 2, name: 'Aaron', pin: '1954' },
-    { id: 3, name: 'Adam', pin: '7306' },
-    { id: 4, name: 'Andrés', pin: '2468' },
-    { id: 5, name: 'Arthur', pin: '5192' },
-    { id: 6, name: 'Cansino', pin: '8841' },
-    { id: 7, name: 'Fernando', pin: '3675' },
-    { id: 8, name: 'Hector', pin: '9027' },
-    { id: 9, name: 'Isabel', pin: '6119' },
-    { id: 10, name: 'Jorge', pin: '7583' },
-    { id: 11, name: 'Mussus', pin: '4308' },
-    { id: 12, name: 'Nuria', pin: '9221' },
+    { id: 1, name: 'Mario' },
+    { id: 2, name: 'Aaron' },
+    { id: 3, name: 'Adam' },
+    { id: 4, name: 'Andrés' },
+    { id: 5, name: 'Arthur' },
+    { id: 6, name: 'Cansino' },
+    { id: 7, name: 'Fernando' },
+    { id: 8, name: 'Hector' },
+    { id: 9, name: 'Isabel' },
+    { id: 10, name: 'Jorge' },
+    { id: 11, name: 'Mussus' },
+    { id: 12, name: 'Nuria' },
 ];
 
 const INITIAL_CATALOG = [
@@ -179,19 +179,7 @@ export const AppProvider = ({ children }) => {
             await signInWithEmailAndPassword(auth, email, password);
             return true;
         } catch (error) {
-            console.log("[Auth] Sign in failed, attempting auto-registration:", error.code);
-            if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-                // Pre-check if PIN matches our local master list (migration only)
-                const user = USERS_DATA.find(u => u.id === parseInt(memberId));
-                if (user && user.pin === pin) {
-                    try {
-                        await createUserWithEmailAndPassword(auth, email, password);
-                        return true;
-                    } catch (regError) {
-                        return false;
-                    }
-                }
-            }
+            console.error("[Auth] Sign in failed:", error.code);
             return false;
         }
     };
