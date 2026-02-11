@@ -170,32 +170,32 @@ export default function Statistics() {
     }, [stats, selectedMemberId]);
 
     return (
-        <div className="container" style={{ paddingBottom: '2rem' }}>
-            <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>Estadísticas</h2>
+        <div className="container" style={{ paddingBottom: '8rem', color: 'var(--text-primary)' }}>
+            <h2 style={{ textAlign: 'center', margin: '1.5rem 0', fontWeight: 800, letterSpacing: '-0.025em' }}>Estadísticas</h2>
 
             {/* Range Presets */}
-            <div className="flex gap-sm mb-md" style={{ overflowX: 'auto', paddingBottom: '0.5rem' }}>
+            <div className="flex gap-sm mb-md" style={{ overflowX: 'auto', paddingBottom: '0.75rem', paddingLeft: '0.25rem', paddingRight: '0.25rem' }}>
                 {[
-                    { id: 'TOTAL', label: 'Histórico (Total)' },
-                    { id: 'MONTH', label: 'Mes actual' },
-                    { id: 'WEEK', label: 'Semana actual' },
-                    { id: 'CUSTOM', label: 'Personalizado' }
+                    { id: 'TOTAL', label: 'Histórico' },
+                    { id: 'MONTH', label: 'Mes' },
+                    { id: 'WEEK', label: 'Semana' },
+                    { id: 'CUSTOM', label: 'Rango' }
                 ].map(r => (
                     <button
                         key={r.id}
                         onClick={() => setRangeType(r.id)}
                         style={{
-                            padding: '0.5rem 1rem',
-                            borderRadius: '999px',
-                            border: 'none',
-                            backgroundColor: rangeType === r.id ? 'var(--primary)' : 'var(--bg-surface)',
+                            padding: '0.6rem 1.25rem',
+                            borderRadius: '2rem',
+                            border: '1px solid rgba(255,255,255,0.05)',
+                            background: rangeType === r.id ? 'var(--primary-gradient)' : 'var(--bg-glass)',
                             color: rangeType === r.id ? 'white' : 'var(--text-secondary)',
-                            fontWeight: 600,
+                            fontWeight: 700,
                             fontSize: '0.8125rem',
                             whiteSpace: 'nowrap',
                             cursor: 'pointer',
-                            transition: 'all 0.2s',
-                            border: '1px solid var(--border)'
+                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                            boxShadow: rangeType === r.id ? 'var(--glow-primary)' : 'none'
                         }}
                     >
                         {r.label}
@@ -204,18 +204,21 @@ export default function Statistics() {
             </div>
 
             {/* Range Header Pill */}
-            <div className="flex justify-center mb-md">
+            <div className="flex justify-center mb-xl">
                 <div style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.5rem',
-                    backgroundColor: 'var(--bg-surface)',
-                    padding: '0.4rem 0.875rem',
+                    background: 'rgba(255,255,255,0.03)',
+                    backdropFilter: 'blur(10px)',
+                    padding: '0.5rem 1.25rem',
                     borderRadius: '2rem',
                     fontSize: '0.8125rem',
                     color: 'var(--text-secondary)',
-                    fontWeight: 600,
-                    border: '1px solid var(--border)'
+                    fontWeight: 700,
+                    border: '1px solid var(--border-light)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em'
                 }}>
                     <CalendarIcon style={{ width: '0.875rem', height: '0.875rem' }} />
                     <span>{rangeHeader}</span>
@@ -223,30 +226,27 @@ export default function Statistics() {
             </div>
 
             {rangeType === 'CUSTOM' && (
-                <div className="flex gap-sm mb-md animated fadeIn">
-                    <div style={{
+                <div className="flex gap-sm mb-xl animated fadeIn">
+                    <div className="card" style={{
                         flex: 1,
-                        backgroundColor: 'var(--bg-surface)',
-                        padding: '0.75rem',
-                        borderRadius: '1rem',
-                        border: '1px solid var(--border)',
+                        padding: '1rem',
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: '0.25rem'
+                        gap: '0.5rem'
                     }}>
-                        <span style={{ fontSize: '0.625rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Desde/Hasta</span>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <span style={{ fontSize: '0.625rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Rango de fechas</span>
+                        <div style={{ display: 'flex', gap: '0.75rem' }}>
                             <input
                                 type="date"
                                 value={customDates.start}
                                 onChange={e => setCustomDates(prev => ({ ...prev, start: e.target.value }))}
-                                style={{ border: 'none', background: 'none', fontSize: '0.875rem', color: 'var(--text-primary)', padding: 0, outline: 'none', width: '100%' }}
+                                style={{ border: '1px solid var(--border-light)', background: 'rgba(255,255,255,0.03)', fontSize: '0.875rem', color: 'var(--text-primary)', padding: '0.4rem 0.75rem', borderRadius: '0.75rem', outline: 'none', width: '100%' }}
                             />
                             <input
                                 type="date"
                                 value={customDates.end}
                                 onChange={e => setCustomDates(prev => ({ ...prev, end: e.target.value }))}
-                                style={{ border: 'none', background: 'none', fontSize: '0.875rem', color: 'var(--text-primary)', padding: 0, outline: 'none', width: '100%' }}
+                                style={{ border: '1px solid var(--border-light)', background: 'rgba(255,255,255,0.03)', fontSize: '0.875rem', color: 'var(--text-primary)', padding: '0.4rem 0.75rem', borderRadius: '0.75rem', outline: 'none', width: '100%' }}
                             />
                         </div>
                     </div>
@@ -256,7 +256,15 @@ export default function Statistics() {
             {/* Member Ranking List */}
             <div className="flex flex-col gap-sm">
                 {stats.map((member) => {
-                    const rankStyle = getRankStyle(member.rank);
+                    const isTop3 = member.rank <= 3;
+                    const getPremiumStyle = (rank) => {
+                        if (rank === 1) return { background: 'linear-gradient(135deg, #FFD700 0%, #B8860B 100%)', shadow: '0 10px 20px -5px rgba(255, 215, 0, 0.3)' };
+                        if (rank === 2) return { background: 'linear-gradient(135deg, #E2E8F0 0%, #94A3B8 100%)', shadow: '0 10px 20px -5px rgba(148, 163, 184, 0.3)' };
+                        if (rank === 3) return { background: 'linear-gradient(135deg, #F97316 0%, #C2410C 100%)', shadow: '0 10px 20px -5px rgba(194, 65, 12, 0.3)' };
+                        return null;
+                    };
+                    const premium = getPremiumStyle(member.rank);
+
                     return (
                         <div
                             key={member.memberId}
@@ -264,34 +272,49 @@ export default function Statistics() {
                             onClick={() => setSelectedMemberId(member.memberId)}
                             style={{
                                 cursor: 'pointer',
-                                padding: '1rem',
-                                background: rankStyle.background,
-                                border: rankStyle.border,
-                                boxShadow: member.rank <= 3 ? 'var(--shadow-sm)' : 'none',
-                                transform: member.rank <= 3 ? 'scale(1.02)' : 'none',
-                                transition: 'all 0.2s',
-                                borderRadius: '1.25rem'
+                                padding: '1.25rem',
+                                background: isTop3 ? 'rgba(255,255,255,0.03)' : 'var(--bg-glass)',
+                                borderColor: isTop3 ? 'rgba(255,255,255,0.1)' : 'var(--border-light)',
+                                transform: isTop3 ? 'translateY(-2px)' : 'none',
+                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                position: 'relative',
+                                overflow: 'hidden'
                             }}
                         >
+                            {isTop3 && (
+                                <div style={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    width: '4px',
+                                    height: '100%',
+                                    background: premium.background
+                                }} />
+                            )}
                             <div className="flex items-center gap-md">
                                 <div style={{
-                                    width: '2.25rem',
-                                    height: '2.25rem',
-                                    borderRadius: '50%',
+                                    width: '2.5rem',
+                                    height: '2.5rem',
+                                    borderRadius: '0.75rem',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    backgroundColor: member.rank <= 3 ? 'rgba(255,255,255,0.6)' : '#F3F4F6',
-                                    fontWeight: 800,
-                                    fontSize: '1rem',
-                                    color: rankStyle.color,
-                                    position: 'relative'
+                                    background: isTop3 ? premium.background : 'rgba(255,255,255,0.03)',
+                                    fontWeight: 900,
+                                    fontSize: '1.125rem',
+                                    color: isTop3 ? '#000' : 'var(--text-secondary)',
+                                    boxShadow: isTop3 ? premium.shadow : 'none'
                                 }}>
                                     {member.rank}
                                 </div>
-                                <div style={{ fontWeight: 600, color: rankStyle.color }}>{member.name}</div>
+                                <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1rem' }}>{member.name}</div>
                             </div>
-                            <div style={{ fontWeight: 500, color: member.rank <= 3 ? rankStyle.color : 'var(--primary)', fontSize: '1.125rem' }}>
+                            <div style={{
+                                fontWeight: 800,
+                                color: isTop3 ? 'var(--text-primary)' : 'var(--text-secondary)',
+                                fontSize: isTop3 ? '1.25rem' : '1.125rem',
+                                textShadow: isTop3 ? '0 0 20px rgba(255,255,255,0.2)' : 'none'
+                            }}>
                                 {member.totalAmount.toFixed(2)} €
                             </div>
                         </div>
@@ -312,77 +335,86 @@ export default function Statistics() {
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    backgroundColor: 'rgba(0,0,0,0.6)',
-                    backdropFilter: 'blur(8px)',
+                    backgroundColor: 'rgba(0,0,0,0.8)',
+                    backdropFilter: 'blur(20px)',
                     zIndex: 2000,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    padding: '1rem'
+                    padding: '1.5rem'
                 }} onClick={() => setSelectedMemberId(null)}>
                     <div
                         className="card"
-                        style={{ width: '100%', maxWidth: '400px', padding: '1.5rem', position: 'relative', borderRadius: '2rem', boxShadow: 'var(--shadow-lg)', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}
+                        style={{
+                            width: '100%',
+                            maxWidth: '440px',
+                            padding: '2rem',
+                            position: 'relative',
+                            borderRadius: '2.5rem',
+                            background: 'var(--bg-glass)',
+                            border: '1px solid var(--border-light)',
+                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                        }}
                         onClick={e => e.stopPropagation()}
                     >
-                        <button onClick={() => setSelectedMemberId(null)} style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', border: 'none', background: 'none', cursor: 'pointer' }}>
-                            <XMarkIcon style={{ width: '1.5rem', color: 'var(--text-secondary)' }} />
+                        <button onClick={() => setSelectedMemberId(null)} style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', border: 'none', background: 'rgba(255,255,255,0.05)', padding: '0.5rem', borderRadius: '50%', cursor: 'pointer' }}>
+                            <XMarkIcon style={{ width: '1.25rem', color: 'var(--text-secondary)' }} />
                         </button>
 
-                        <div className="mb-md">
-                            <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.25rem', color: 'var(--text-primary)' }}>{selectedMemberData.name}</h3>
-                            <div style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                                <CalendarIcon style={{ width: '0.875rem' }} />
+                        <div className="mb-xl">
+                            <h3 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '0.5rem', color: 'var(--text-primary)', letterSpacing: '-0.025em' }}>{selectedMemberData.name}</h3>
+                            <div style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                <CalendarIcon style={{ width: '1rem', color: 'var(--primary)' }} />
                                 {rangeHeader}
                             </div>
                         </div>
 
                         {/* Grid Breakdown */}
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', marginBottom: '2rem' }}>
                             {Object.entries(selectedMemberData.breakdown).map(([name, qty]) => (
-                                <div key={name} className="card" style={{
-                                    padding: '1.25rem',
+                                <div key={name} style={{
+                                    padding: '1.5rem 1rem',
                                     display: 'flex',
                                     flexDirection: 'column',
                                     alignItems: 'center',
                                     position: 'relative',
-                                    border: '1px solid var(--border)',
-                                    background: 'var(--bg-app)',
-                                    borderRadius: '1.25rem'
+                                    background: 'rgba(255,255,255,0.03)',
+                                    border: '1px solid var(--border-light)',
+                                    borderRadius: '1.5rem',
+                                    transition: 'all 0.2s'
                                 }}>
-                                    <div style={{ fontSize: '2.25rem', marginBottom: '0.5rem' }}>{CATALOG_ICONS[name] || '🥤'}</div>
-                                    <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-primary)' }}>{name}</div>
+                                    <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>{CATALOG_ICONS[name] || '🥤'}</div>
+                                    <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-primary)', textAlign: 'center' }}>{name}</div>
                                     <div style={{
                                         position: 'absolute',
-                                        top: '-0.375rem',
-                                        right: '-0.375rem',
-                                        backgroundColor: 'var(--primary)',
+                                        top: '0.75rem',
+                                        right: '0.75rem',
+                                        background: 'var(--primary-gradient)',
                                         color: 'white',
-                                        minWidth: '1.75rem',
+                                        width: '1.75rem',
                                         height: '1.75rem',
-                                        borderRadius: '50%',
+                                        borderRadius: '0.6rem',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        fontSize: '0.8125rem',
+                                        fontSize: '0.875rem',
                                         fontWeight: 800,
-                                        padding: '0 4px',
-                                        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'
+                                        boxShadow: 'var(--glow-primary)'
                                     }}>
                                         {qty}
                                     </div>
                                 </div>
                             ))}
                             {Object.keys(selectedMemberData.breakdown).length === 0 && (
-                                <div style={{ gridColumn: 'span 2', textAlign: 'center', padding: '2.5rem', color: '#9CA3AF', background: '#F9FAFB', borderRadius: '1.25rem', fontSize: '0.875rem' }}>
+                                <div style={{ gridColumn: 'span 2', textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.02)', borderRadius: '1.5rem', border: '1px dashed var(--border-light)', fontSize: '0.875rem', fontWeight: 600 }}>
                                     No hay consumos registrados
                                 </div>
                             )}
                         </div>
 
-                        <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>Total gastado</span>
-                            <span style={{ fontWeight: 600, color: 'var(--primary)', fontSize: '1.5rem' }}>{selectedMemberData.totalAmount.toFixed(2)} €</span>
+                        <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>Total invertido</span>
+                            <span style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '1.75rem', textShadow: 'var(--glow-primary)' }}>{selectedMemberData.totalAmount.toFixed(2)} €</span>
                         </div>
                     </div>
                 </div>

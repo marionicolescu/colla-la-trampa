@@ -60,11 +60,11 @@ export default function History() {
     };
 
     return (
-        <div className="container" style={{ backgroundColor: 'var(--bg-app)', minHeight: '100vh' }}>
-            <h2 style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--text-primary)' }}>Historial</h2>
+        <div className="container" style={{ minHeight: '100vh', paddingBottom: '8rem', color: 'var(--text-primary)' }}>
+            <h2 style={{ textAlign: 'center', margin: '1.5rem 0', fontWeight: 800, letterSpacing: '-0.025em' }}>Historial</h2>
 
             {/* Filters */}
-            <div className="flex gap-sm mb-md" style={{ overflowX: 'auto', paddingBottom: '0.5rem' }}>
+            <div className="flex gap-sm mb-md" style={{ overflowX: 'auto', paddingBottom: '0.75rem', paddingLeft: '0.25rem', paddingRight: '0.25rem' }}>
                 {[
                     { id: 'ALL', label: 'Todos' },
                     { id: 'CONSUMPTION', label: 'Consumos' },
@@ -75,16 +75,17 @@ export default function History() {
                         key={f.id}
                         onClick={() => setFilter(f.id)}
                         style={{
-                            padding: '0.5rem 1rem',
-                            borderRadius: '999px',
-                            border: '1px solid var(--border)',
-                            backgroundColor: filter === f.id ? 'var(--primary)' : 'var(--bg-surface)',
+                            padding: '0.6rem 1.25rem',
+                            borderRadius: '2rem',
+                            border: '1px solid rgba(255,255,255,0.05)',
+                            background: filter === f.id ? 'var(--primary-gradient)' : 'var(--bg-glass)',
                             color: filter === f.id ? 'white' : 'var(--text-secondary)',
-                            fontWeight: 600,
+                            fontWeight: 700,
                             fontSize: '0.8125rem',
                             whiteSpace: 'nowrap',
                             cursor: 'pointer',
-                            transition: 'all 0.2s'
+                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                            boxShadow: filter === f.id ? 'var(--glow-primary)' : 'none'
                         }}
                     >
                         {f.label}
@@ -97,18 +98,44 @@ export default function History() {
                     const { title, icon, amountClass, amountSign, borderColor } = getDetails(t);
                     const date = new Date(t.timestamp);
                     const dateStr = date.toLocaleDateString() + ' · ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const isSuccess = amountClass.includes('success');
+                    const isDanger = amountClass.includes('danger');
 
                     return (
-                        <div key={t.id} className="card flex items-center gap-md" style={{ borderLeft: `4px solid ${borderColor}`, paddingLeft: '1rem', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)', borderLeftWidth: '4px' }}>
-                            <div>{icon}</div>
+                        <div
+                            key={t.id}
+                            className="card flex items-center gap-md"
+                            style={{
+                                borderLeft: `4px solid ${borderColor}`,
+                                padding: '1.25rem',
+                                background: 'var(--bg-glass)',
+                                backgroundImage: 'var(--surface-gradient)'
+                            }}
+                        >
+                            <div style={{
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: 'rgba(255,255,255,0.03)',
+                                border: '1px solid var(--border-light)'
+                            }}>
+                                {icon}
+                            </div>
                             <div style={{ flex: 1 }}>
-                                <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{title}</div>
-                                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.9375rem' }}>{title}</div>
+                                <div style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginTop: '0.125rem', fontWeight: 500 }}>
                                     {t.description || t.type}
                                 </div>
-                                <div style={{ fontSize: '0.75rem', color: '#9CA3AF' }}>{dateStr}</div>
+                                <div style={{ fontSize: '0.6875rem', color: 'rgba(255,255,255,0.2)', marginTop: '0.25rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{dateStr}</div>
                             </div>
-                            <div className={amountClass} style={{ fontWeight: 'bold', fontSize: '1.125rem' }}>
+                            <div className={amountClass} style={{
+                                fontWeight: 800,
+                                fontSize: '1.125rem',
+                                textShadow: isSuccess ? 'var(--glow-success)' : isDanger ? 'var(--glow-danger)' : 'none'
+                            }}>
                                 {amountSign}{t.amount.toFixed(2)} €
                             </div>
                         </div>

@@ -12,22 +12,25 @@ export default function Modal({ isOpen, onClose, title, children }) {
             right: 0,
             bottom: 0,
             backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            backdropFilter: 'blur(4px)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 2000,
-            padding: '1rem'
+            padding: '1.5rem'
         }} onClick={onClose}>
             <div style={{
-                backgroundColor: 'var(--bg-surface)',
-                borderRadius: 'var(--radius-lg)',
+                background: 'var(--bg-glass)',
+                backgroundImage: 'var(--surface-gradient)',
+                borderRadius: '2.5rem',
                 width: '100%',
                 maxWidth: '500px',
                 maxHeight: '90vh',
                 display: 'flex',
                 flexDirection: 'column',
-                boxShadow: 'var(--shadow-lg)'
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+                border: '1px solid var(--border-light)'
             }} onClick={e => e.stopPropagation()}>
 
                 {/* Header */}
@@ -35,26 +38,28 @@ export default function Modal({ isOpen, onClose, title, children }) {
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    padding: '1rem',
-                    borderBottom: '1px solid var(--border)'
+                    padding: '2rem 1.5rem 1rem',
+                    borderBottom: 'none'
                 }}>
-                    <h3 style={{ margin: 0, fontSize: '1.25rem', color: 'var(--text-primary)' }}>{title}</h3>
+                    <h3 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.025em' }}>{title}</h3>
                     <button
                         onClick={onClose}
                         style={{
-                            background: 'none',
+                            background: 'rgba(255,255,255,0.05)',
                             border: 'none',
+                            padding: '0.5rem',
+                            borderRadius: '50%',
                             cursor: 'pointer',
                             color: 'var(--text-secondary)'
                         }}
                     >
-                        <XMarkIcon style={{ width: '1.5rem' }} />
+                        <XMarkIcon style={{ width: '1.25rem' }} />
                     </button>
                 </div>
 
                 {/* Content */}
                 <div style={{
-                    padding: '1rem',
+                    padding: '1rem 1.5rem 2rem',
                     overflowY: 'auto'
                 }}>
                     {children}

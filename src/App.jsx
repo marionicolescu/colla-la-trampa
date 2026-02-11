@@ -16,8 +16,8 @@ function AppContent() {
 
   if (loadingAuth || loadingData) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ color: 'var(--primary)', fontWeight: 'bold' }}>Cargando...</div>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle at 50% 50%, #1a001a 0%, #000000 100%)' }}>
+        <div style={{ color: 'var(--primary)', fontWeight: 800, fontSize: '1.25rem', letterSpacing: '0.1em', textTransform: 'uppercase', textShadow: 'var(--glow-primary)' }}>Cargando...</div>
       </div>
     );
   }
@@ -33,15 +33,15 @@ function AppContent() {
         justifyContent: 'center',
         textAlign: 'center',
         padding: '2rem',
-        backgroundColor: 'var(--bg-app)'
+        background: 'radial-gradient(circle at 50% 50%, #1a001a 0%, #000000 100%)'
       }}>
         <img
           src="https://media4.giphy.com/media/v1.Y2lkPTZjMDliOTUyZmp2N29kN3Iwb2doZTRyY3prZzRrd2JxMW9lbjRxM3Y5aHYyZmJldCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/SS4imysASHTHUsXyt6/giphy.gif"
           alt="Mantenimiento"
-          style={{ maxWidth: '300px', marginBottom: '2rem', borderRadius: '1rem', border: '2px solid var(--primary)', boxShadow: '0 0 20px rgba(217, 70, 239, 0.3)' }}
+          style={{ maxWidth: '300px', marginBottom: '2.5rem', borderRadius: '1.5rem', border: '1px solid var(--border-light)', boxShadow: '0 0 40px rgba(217, 70, 239, 0.2)' }}
         />
-        <h1 style={{ color: 'var(--primary)', marginBottom: '1rem', fontWeight: 'bold' }}>Modo Mantenimiento</h1>
-        <p style={{ color: 'var(--text-secondary)', maxWidth: '400px', fontWeight: 500 }}>
+        <h1 style={{ background: 'var(--primary-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '1rem', fontWeight: 900, fontSize: '2rem' }}>Mantenimiento</h1>
+        <p style={{ color: 'var(--text-secondary)', maxWidth: '400px', fontWeight: 600, fontSize: '1rem' }}>
           Estamos limpiando las potas y contando las monedas.
           ¡Volvemos enseguida!
         </p>

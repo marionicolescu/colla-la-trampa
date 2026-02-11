@@ -14,17 +14,21 @@ export default function BottomNav({ activeTab, onTabChange }) {
     return (
         <nav style={{
             position: 'fixed',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            backgroundColor: 'var(--bg-surface)',
-            borderTop: '1px solid var(--border)',
+            bottom: '1rem',
+            left: '1rem',
+            right: '1rem',
+            background: 'rgba(18, 18, 18, 0.8)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255,255,255,0.08)',
             display: 'flex',
             justifyContent: 'space-around',
-            padding: '0.5rem 0',
+            padding: '0.75rem 0.5rem',
             zIndex: 1000,
-            maxWidth: '600px',
-            margin: '0 auto' // Center if on desktop
+            maxWidth: '540px',
+            margin: '0 auto',
+            borderRadius: '2rem',
+            boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.5)'
         }}>
             {tabs.map(tab => {
                 const Icon = activeTab === tab.id ? tab.activeIcon : tab.icon;

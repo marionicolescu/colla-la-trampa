@@ -65,23 +65,24 @@ export default function Consume() {
     const itemCount = Object.values(cart).reduce((a, b) => a + b, 0);
 
     return (
-        <div className="container" style={{ paddingBottom: '5rem', backgroundColor: 'var(--bg-app)', minHeight: '100vh', color: 'var(--text-primary)' }}>
-            <h2 style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--text-primary)' }}>Consumir</h2>
+        <div className="container" style={{ paddingBottom: '8rem', minHeight: '100vh', color: 'var(--text-primary)' }}>
+            <h2 style={{ textAlign: 'center', margin: '1.5rem 0', color: 'var(--text-primary)', fontWeight: 800, letterSpacing: '-0.025em' }}>Consumir</h2>
 
             {/* User Toggle */}
-            <div className="flex flex-col items-center mb-md">
-                <div style={{ background: 'var(--border)', border: '1px solid var(--border)', borderRadius: '2rem', padding: '0.25rem', display: 'flex' }}>
+            <div className="flex flex-col items-center mb-xl">
+                <div style={{ background: 'var(--border-light)', backdropFilter: 'blur(10px)', borderRadius: '2rem', padding: '0.25rem', display: 'flex', border: '1px solid rgba(255,255,255,0.05)' }}>
                     <button
                         onClick={() => setIsGuest(false)}
                         style={{
-                            padding: '0.5rem 1.5rem',
+                            padding: '0.6rem 2rem',
                             borderRadius: '1.5rem',
                             border: 'none',
-                            background: !isGuest ? 'var(--primary)' : 'transparent',
+                            background: !isGuest ? 'var(--primary-gradient)' : 'transparent',
                             color: !isGuest ? 'white' : 'var(--text-secondary)',
-                            fontWeight: 600,
+                            fontWeight: 700,
                             cursor: 'pointer',
-                            transition: 'all 0.2s'
+                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                            boxShadow: !isGuest ? 'var(--glow-primary)' : 'none'
                         }}
                     >
                         Yo
@@ -89,14 +90,15 @@ export default function Consume() {
                     <button
                         onClick={() => setIsGuest(true)}
                         style={{
-                            padding: '0.5rem 1.5rem',
+                            padding: '0.6rem 2rem',
                             borderRadius: '1.5rem',
                             border: 'none',
-                            background: isGuest ? 'var(--primary)' : 'transparent',
+                            background: isGuest ? 'var(--primary-gradient)' : 'transparent',
                             color: isGuest ? 'white' : 'var(--text-secondary)',
-                            fontWeight: 600,
+                            fontWeight: 700,
                             cursor: 'pointer',
-                            transition: 'all 0.2s'
+                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                            boxShadow: isGuest ? 'var(--glow-primary)' : 'none'
                         }}
                     >
                         Invitado
@@ -104,16 +106,18 @@ export default function Consume() {
                 </div>
                 {isGuest && (
                     <div style={{
-                        marginTop: '0.75rem',
+                        marginTop: '1rem',
                         fontSize: '0.8125rem',
-                        fontWeight: 600,
-                        backgroundColor: 'rgba(217, 70, 239, 0.1)',
+                        fontWeight: 700,
+                        background: 'rgba(217, 70, 239, 0.1)',
                         color: 'var(--primary)',
-                        padding: '0.375rem 1rem',
-                        borderRadius: '1rem',
-                        border: '1px solid rgba(217, 70, 239, 0.2)'
+                        padding: '0.5rem 1.25rem',
+                        borderRadius: '2rem',
+                        border: '1px solid rgba(217, 70, 239, 0.2)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em'
                     }}>
-                        Modo Invitado activo · Precios con recargo
+                        Modo Invitado activo
                     </div>
                 )}
             </div>
@@ -135,39 +139,41 @@ export default function Consume() {
                                 justifyContent: 'center',
                                 padding: '1.5rem',
                                 position: 'relative',
-                                backgroundColor: 'var(--bg-surface)',
-                                border: qty > 0 ? '2px solid var(--primary)' : '1px solid var(--border)',
-                                color: 'var(--text-primary)',
-                                transition: 'all 0.2s'
+                                background: qty > 0 ? 'rgba(217, 70, 239, 0.05)' : 'var(--bg-glass)',
+                                borderColor: qty > 0 ? 'rgba(217, 70, 239, 0.4)' : 'var(--border-light)',
+                                boxShadow: qty > 0 ? 'inset 0 0 20px rgba(217, 70, 239, 0.1)' : 'none',
+                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                transform: qty > 0 ? 'translateY(-4px)' : 'none'
                             }}
                         >
-                            <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>{item.icon}</div>
-                            <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{item.name}</div>
+                            <div style={{ fontSize: '3rem', marginBottom: '0.75rem', filter: qty > 0 ? 'drop-shadow(0 0 8px rgba(217, 70, 239, 0.4))' : 'none' }}>{item.icon}</div>
+                            <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1rem', marginBottom: '0.25rem' }}>{item.name}</div>
 
                             {isGuest ? (
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textDecoration: 'line-through' }}>{item.price.toFixed(2)} €</div>
-                                    <div style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{item.guestPrice.toFixed(2)} €</div>
+                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textDecoration: 'line-through', opacity: 0.6 }}>{item.price.toFixed(2)}</div>
+                                    <div style={{ color: 'var(--primary)', fontWeight: 800 }}>{item.guestPrice.toFixed(2)} €</div>
                                 </div>
                             ) : (
-                                <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>{item.price.toFixed(2)} €</div>
+                                <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: 600 }}>{item.price.toFixed(2)} €</div>
                             )}
 
                             {qty > 0 && (
                                 <div style={{
                                     position: 'absolute',
-                                    top: '-0.5rem',
-                                    right: '-0.5rem',
-                                    backgroundColor: 'var(--primary)',
+                                    top: '0.75rem',
+                                    right: '0.75rem',
+                                    background: 'var(--primary-gradient)',
                                     color: 'white',
                                     width: '1.75rem',
                                     height: '1.75rem',
-                                    borderRadius: '50%',
+                                    borderRadius: '0.6rem',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     fontSize: '0.875rem',
-                                    fontWeight: 'bold'
+                                    fontWeight: 800,
+                                    boxShadow: 'var(--glow-primary)'
                                 }}>
                                     {qty}
                                 </div>
@@ -179,27 +185,27 @@ export default function Consume() {
 
             {/* Cart Summary Header */}
             {itemCount > 0 && (
-                <div className="card mb-md" style={{ padding: '1rem' }}>
-                    <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>Resumen</h3>
+                <div className="card mb-md" style={{ padding: '1.25rem', background: 'rgba(255,255,255,0.02)', border: '1px dashed var(--border-light)' }}>
+                    <h3 style={{ fontSize: '0.875rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem', color: 'var(--text-secondary)' }}>Resumen</h3>
                     {Object.entries(cart).map(([id, qty]) => {
                         const item = catalog.find(i => i.id === id);
                         return (
-                            <div key={id} className="flex justify-between items-center" style={{ marginBottom: '0.5rem', fontSize: '0.875rem' }}>
+                            <div key={id} className="flex justify-between items-center" style={{ marginBottom: '0.75rem' }}>
                                 <div className="flex items-center gap-sm">
-                                    <span>{qty}x {item.name}</span>
+                                    <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{qty}x {item.name}</span>
                                 </div>
-                                <div className="flex items-center gap-sm">
-                                    <span>{((isGuest ? item.guestPrice : item.price) * qty).toFixed(2)} €</span>
-                                    <button onClick={(e) => { e.stopPropagation(); removeFromCart(id); }} style={{ color: 'red', background: 'none', border: 'none', cursor: 'pointer' }}>
-                                        <TrashIcon style={{ width: '1rem' }} />
+                                <div className="flex items-center gap-md">
+                                    <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{((isGuest ? item.guestPrice : item.price) * qty).toFixed(2)} €</span>
+                                    <button onClick={(e) => { e.stopPropagation(); removeFromCart(id); }} style={{ color: 'var(--danger)', background: 'rgba(239, 68, 68, 0.1)', border: 'none', cursor: 'pointer', padding: '0.4rem', borderRadius: '0.5rem' }}>
+                                        <TrashIcon style={{ width: '1.125rem' }} />
                                     </button>
                                 </div>
                             </div>
                         )
                     })}
-                    <div style={{ borderTop: '1px solid var(--border)', marginTop: '0.5rem', paddingTop: '0.5rem', display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
-                        <span>Total</span>
-                        <span>{total.toFixed(2)} €</span>
+                    <div style={{ borderTop: '1px solid var(--border-light)', marginTop: '1rem', paddingTop: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', fontSize: '0.75rem' }}>Total</span>
+                        <span style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary)', textShadow: 'var(--glow-primary)' }}>{total.toFixed(2)} €</span>
                     </div>
                 </div>
             )}
@@ -211,17 +217,20 @@ export default function Consume() {
                     className="btn btn-primary"
                     style={{
                         position: 'fixed',
-                        bottom: '5rem', // above nav
+                        bottom: '6.5rem', // above nav
                         left: '50%',
                         transform: 'translateX(-50%)',
                         width: '90%',
                         maxWidth: '540px',
-                        padding: '1rem',
-                        boxShadow: 'var(--shadow-lg)',
-                        zIndex: 900
+                        padding: '1.25rem',
+                        boxShadow: '0 20px 40px rgba(217, 70, 239, 0.4)',
+                        zIndex: 900,
+                        borderRadius: '1.5rem',
+                        fontSize: '1.125rem',
+                        fontWeight: 800
                     }}
                 >
-                    <ShoppingCartIcon style={{ width: '1.5rem', marginRight: '0.5rem' }} />
+                    <ShoppingCartIcon style={{ width: '1.5rem', marginRight: '0.75rem', strokeWidth: 2.5 }} />
                     {isGuest ? `Apuntar invitado (${total.toFixed(2)} €)` : `Apuntar (${total.toFixed(2)} €)`}
                 </button>
             )}
