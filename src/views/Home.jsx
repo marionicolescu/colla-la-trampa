@@ -57,7 +57,7 @@ export default function Home() {
     return (
         <div className="container" style={{ minHeight: '100vh', padding: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '1rem 0' }}>
-                <h1 style={{ margin: 0, fontSize: '1.25rem', color: 'var(--text-primary)' }}>Colla LA TRAMPA</h1>
+                <h1 style={{ margin: 0, fontSize: '1.25rem', color: 'var(--text-primary)' }}>LA TRAMPA</h1>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                     {installPrompt && (
                         <button

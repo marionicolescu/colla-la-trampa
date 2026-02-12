@@ -34,7 +34,7 @@ export default function Login() {
             padding: '1rem'
         }}>
             <div className="card" style={{ width: '100%', maxWidth: '400px', padding: '2.5rem', border: '1px solid var(--border)' }}>
-                <h1 style={{ textAlign: 'center', marginBottom: '2rem', color: 'var(--primary)', fontWeight: 'bold' }}>Colla LA TRAMPA</h1>
+                <h1 style={{ textAlign: 'center', marginBottom: '2rem', color: 'var(--primary)', fontWeight: 'bold' }}>LA TRAMPA</h1>
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-md">
                     {error && (
