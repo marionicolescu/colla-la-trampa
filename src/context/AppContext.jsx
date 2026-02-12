@@ -17,29 +17,7 @@ import {
 
 const AppContext = createContext();
 
-const USERS_DATA = [
-    { id: 1, name: 'Mario' },
-    { id: 2, name: 'Aaron' },
-    { id: 3, name: 'Adam' },
-    { id: 4, name: 'Andrés' },
-    { id: 5, name: 'Arthur' },
-    { id: 6, name: 'Cansino' },
-    { id: 7, name: 'Fernando' },
-    { id: 8, name: 'Hector' },
-    { id: 9, name: 'Isabel' },
-    { id: 10, name: 'Jorge' },
-    { id: 11, name: 'Mussus' },
-    { id: 12, name: 'Nuria' },
-];
-
-const INITIAL_CATALOG = [
-    { id: '1', name: 'Refresco', price: 1.00, guestPrice: 1.50, icon: '🥤', order: 1 },
-    { id: '2', name: 'Cerveza', price: 0.50, guestPrice: 1.00, icon: '🍺', order: 2 },
-    { id: '3', name: 'Cubata', price: 2.00, guestPrice: 3.00, icon: '🍸', order: 3 },
-    { id: '4', name: 'Chupito', price: 0.50, guestPrice: 1.00, icon: '🥃', order: 4 },
-];
-
-const VERSION = "1.2.0 - Dynamic Data Mode";
+const VERSION = "1.3.0";
 
 export const AppProvider = ({ children }) => {
     const [transactions, setTransactions] = useState([]);
@@ -55,19 +33,6 @@ export const AppProvider = ({ children }) => {
     useEffect(() => {
         console.log(`[App] Version: ${VERSION}`);
     }, []);
-
-    // Helper for auto-migration
-    const migrateDataIfEmpty = async (collectionName, data, idField = 'id') => {
-        const { getDocs, setDoc, doc } = await import('firebase/firestore');
-        const querySnapshot = await getDocs(collection(db, collectionName));
-        if (querySnapshot.empty) {
-            console.log(`[Migration] Populating ${collectionName}...`);
-            for (const item of data) {
-                const docId = String(item[idField]);
-                await setDoc(doc(db, collectionName, docId), item);
-            }
-        }
-    };
 
     // Firebase Auth Listener
     useEffect(() => {
@@ -94,46 +59,28 @@ export const AppProvider = ({ children }) => {
 
         // Members Listener
         const unsubMembers = onSnapshot(collection(db, "members"), (snap) => {
-            if (snap.empty) {
-                migrateDataIfEmpty("members", USERS_DATA);
-            } else {
-                const mlist = [];
-                snap.forEach(doc => mlist.push({ ...doc.data(), id: Number(doc.id) }));
-                setMembers(mlist);
-                // Sync currentUser name if already logged in
-                if (currentUser) {
-                    const me = mlist.find(m => m.id === currentUser.id);
-                    if (me) setCurrentUser(prev => ({ ...prev, ...me }));
-                }
+            const mlist = [];
+            snap.forEach(doc => mlist.push({ ...doc.data(), id: Number(doc.id) }));
+            setMembers(mlist);
+            // Sync currentUser name if already logged in
+            if (currentUser) {
+                const me = mlist.find(m => m.id === currentUser.id);
+                if (me) setCurrentUser(prev => ({ ...prev, ...me }));
             }
         });
 
         // Catalog Listener
         const unsubCatalog = onSnapshot(collection(db, "products"), (snap) => {
-            if (snap.empty) {
-                migrateDataIfEmpty("products", INITIAL_CATALOG);
-            } else {
-                const clist = [];
-                snap.forEach(doc => clist.push({ ...doc.data(), id: doc.id }));
-                setCatalog(clist.sort((a, b) => a.order - b.order));
-            }
+            const clist = [];
+            snap.forEach(doc => clist.push({ ...doc.data(), id: doc.id }));
+            setCatalog(clist.sort((a, b) => a.order - b.order));
         });
 
         // Settings Listener
         const unsubSettings = onSnapshot(collection(db, "app_settings"), (snap) => {
-            if (snap.empty) {
-                const { setDoc, doc } = import('firebase/firestore');
-                import('firebase/firestore').then(mod => {
-                    mod.setDoc(mod.doc(db, "app_settings", "global"), {
-                        maintenanceMode: false,
-                        motd: "¡Bienvenidos a la nueva app de la Colla!"
-                    });
-                });
-            } else {
-                snap.forEach(doc => {
-                    if (doc.id === "global") setAppSettings(doc.data());
-                });
-            }
+            snap.forEach(doc => {
+                if (doc.id === "global") setAppSettings(doc.data());
+            });
         });
 
         // Transactions Listener
