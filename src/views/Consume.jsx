@@ -141,27 +141,34 @@ export default function Consume() {
                                 transition: 'all 0.2s'
                             }}
                         >
-                            <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>{item.icon}</div>
+                            <div style={{
+                                fontSize: '2.5rem',
+                                marginBottom: '0.5rem',
+                                position: 'relative',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'all 0.3s',
+                                filter: (item.isPremium || item.name?.toLowerCase().includes('premium'))
+                                    ? 'drop-shadow(0 0 12px rgba(251, 191, 36, 0.8))'
+                                    : 'none',
+                                transform: (item.isPremium || item.name?.toLowerCase().includes('premium'))
+                                    ? 'scale(1.1)'
+                                    : 'none'
+                            }}>
+                                {item.icon}
+                                {(item.isPremium || item.name?.toLowerCase().includes('premium')) && (
+                                    <div style={{
+                                        position: 'absolute',
+                                        width: '100%',
+                                        height: '100%',
+                                        background: 'radial-gradient(circle, rgba(251, 191, 36, 0.2) 0%, transparent 70%)',
+                                        zIndex: -1,
+                                        borderRadius: '50%'
+                                    }} />
+                                )}
+                            </div>
                             <div style={{ fontWeight: 600, color: 'var(--text-primary)', textAlign: 'center' }}>{item.name}</div>
-
-                            {(item.isPremium || item.name?.toLowerCase().includes('premium')) && (
-                                <div style={{
-                                    position: 'absolute',
-                                    top: '0.5rem',
-                                    right: '0.5rem',
-                                    backgroundColor: '#fbbf24', // Amber/Gold
-                                    color: '#000',
-                                    padding: '0.1rem 0.4rem',
-                                    borderRadius: '0.4rem',
-                                    fontSize: '0.6rem',
-                                    fontWeight: 'bold',
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.05em',
-                                    boxShadow: '0 0 10px rgba(251, 191, 36, 0.3)'
-                                }}>
-                                    Prem
-                                </div>
-                            )}
 
                             {isGuest ? (
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
