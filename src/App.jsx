@@ -68,6 +68,31 @@ function AppContent() {
           <div className="toast">{notification}</div>
         </div>
       )}
+
+      {/* Admin Maintenance Indicator */}
+      {appSettings?.maintenanceMode && currentUser?.isAdmin && (
+        <div style={{
+          position: 'fixed',
+          top: '1rem',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          backgroundColor: '#fbbf24', // Amber/Yellow
+          color: '#000',
+          padding: '0.4rem 0.8rem',
+          borderRadius: '2rem',
+          fontSize: '0.65rem',
+          fontWeight: '900',
+          letterSpacing: '0.1em',
+          zIndex: 9999,
+          boxShadow: '0 4px 15px rgba(251, 191, 36, 0.4)',
+          border: '1px solid rgba(0,0,0,0.1)',
+          pointerEvents: 'none',
+          textTransform: 'uppercase',
+          whiteSpace: 'nowrap'
+        }}>
+          ⚠️ Mantenimiento Activado
+        </div>
+      )}
     </>
   );
 }
