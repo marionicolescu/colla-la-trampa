@@ -99,9 +99,7 @@ export default function Purchases() {
                         border: '1px solid var(--border)',
                         borderRadius: 'var(--radius-md)',
                         padding: '0 1rem',
-                        backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                        transition: 'border-color 0.2s',
-                        cursor: 'text'
+                        backgroundColor: '#000000'
                     }}>
                         <input
                             type="number"
@@ -117,15 +115,14 @@ export default function Purchases() {
                                 fontSize: '1.25rem',
                                 backgroundColor: 'transparent',
                                 color: 'var(--text-primary)',
-                                fontWeight: 600
+                                fontWeight: 500
                             }}
                             required
                         />
                         <span style={{
-                            color: 'var(--primary)',
-                            fontWeight: 800,
-                            fontSize: '1.25rem',
-                            marginLeft: '0.5rem',
+                            color: 'var(--text-secondary)',
+                            fontWeight: '600',
+                            fontSize: '1.1rem',
                             userSelect: 'none'
                         }}>€</span>
                     </div>
