@@ -93,7 +93,16 @@ export default function Purchases() {
 
                 <div>
                     <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.8125rem', textTransform: 'uppercase' }}>Importe *</label>
-                    <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '0 0.75rem', backgroundColor: 'var(--bg-app)' }}>
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        border: '1px solid var(--border)',
+                        borderRadius: 'var(--radius-md)',
+                        padding: '0 1rem',
+                        backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                        transition: 'border-color 0.2s',
+                        cursor: 'text'
+                    }}>
                         <input
                             type="number"
                             step="0.01"
@@ -107,11 +116,18 @@ export default function Purchases() {
                                 padding: '1rem 0',
                                 fontSize: '1.25rem',
                                 backgroundColor: 'transparent',
-                                color: 'var(--text-primary)'
+                                color: 'var(--text-primary)',
+                                fontWeight: 600
                             }}
                             required
                         />
-                        <span style={{ color: 'var(--text-secondary)', fontWeight: 'bold' }}>€</span>
+                        <span style={{
+                            color: 'var(--primary)',
+                            fontWeight: 800,
+                            fontSize: '1.25rem',
+                            marginLeft: '0.5rem',
+                            userSelect: 'none'
+                        }}>€</span>
                     </div>
                 </div>
 
