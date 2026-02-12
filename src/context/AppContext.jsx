@@ -103,7 +103,7 @@ export const AppProvider = ({ children }) => {
                 // Sync currentUser name if already logged in
                 if (currentUser) {
                     const me = mlist.find(m => m.id === currentUser.id);
-                    if (me) setCurrentUser(prev => ({ ...prev, name: me.name }));
+                    if (me) setCurrentUser(prev => ({ ...prev, ...me }));
                 }
             }
         });
