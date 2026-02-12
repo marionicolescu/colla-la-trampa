@@ -93,14 +93,7 @@ export default function Purchases() {
 
                 <div>
                     <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.8125rem', textTransform: 'uppercase' }}>Importe *</label>
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        border: '1px solid var(--border)',
-                        borderRadius: 'var(--radius-md)',
-                        padding: '0 1rem',
-                        backgroundColor: '#000000'
-                    }}>
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                         <input
                             type="number"
                             step="0.01"
@@ -108,21 +101,25 @@ export default function Purchases() {
                             onChange={e => setAmount(e.target.value)}
                             placeholder="0.00"
                             style={{
-                                border: 'none',
-                                outline: 'none',
-                                flex: 1,
-                                padding: '1rem 0',
+                                width: '100%',
+                                padding: '1rem 2.5rem 1rem 1rem',
                                 fontSize: '1.25rem',
-                                backgroundColor: 'transparent',
+                                border: '1px solid var(--border)',
+                                borderRadius: 'var(--radius-md)',
+                                backgroundColor: '#000000',
                                 color: 'var(--text-primary)',
-                                fontWeight: 500
+                                outline: 'none',
+                                fontWeight: 600
                             }}
                             required
                         />
                         <span style={{
+                            position: 'absolute',
+                            right: '1rem',
                             color: 'var(--text-secondary)',
-                            fontWeight: '600',
+                            fontWeight: 600,
                             fontSize: '1.1rem',
+                            pointerEvents: 'none',
                             userSelect: 'none'
                         }}>€</span>
                     </div>

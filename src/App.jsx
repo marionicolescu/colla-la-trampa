@@ -22,8 +22,8 @@ function AppContent() {
     );
   }
 
-  // Maintenance Mode Overlay
-  if (appSettings?.maintenanceMode) {
+  // Maintenance Mode Overlay (Mario can bypass)
+  if (appSettings?.maintenanceMode && currentUser?.name !== 'Mario') {
     return (
       <div style={{
         minHeight: '100vh',
