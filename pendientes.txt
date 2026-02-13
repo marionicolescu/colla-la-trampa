@@ -1,0 +1,6 @@
+1. Añadir propiedad 'state' a las transactions 'PAYMENT'. Esa propiedad puede ser 'pending', 'confirmed' o 'rejected'. 
+2. Añadir propiedad id y concepto a las transactions. El concepto seguir  el siguiente formato: 1 digito para el type [P,C,A,B], 4 digitos para el id de la transaction, 2 digitos para id del usuario, 5 digitos para el importe. 
+3. Meter el concepto de las transacciones en las cards del historial y permitir copiarlo. 
+4. Meter un icono para diferenciar el 'state' del 'PAYMENT'. Para 'pending' se puede usar un reloj de arena, para 'confirmed' un tick verde y para 'rejected' una X roja o algun icono de error. 
+5. En el home, meter 2 saldos pendientes, uno para los saldos pendientes de los usuarios [como el actual saldo pendiente] y a¤adir uno que sume los 'PAYMENT' con state 'pending'. 
+6. Añadir a las cards de los usuarios otro saldo pendiente que sea de los 'PAYMENT' con state 'pending'.
