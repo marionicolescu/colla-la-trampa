@@ -165,10 +165,32 @@ export const AppProvider = ({ children }) => {
         return pot;
     };
 
+    const getMemberPendingBalance = (memberId) => {
+        let pending = 0;
+        const targetId = Number(memberId);
+        transactions.forEach(t => {
+            // Only count unverified PAYMENT transactions (not ADVANCE)
+            if (t.verified === false && Number(t.memberId) === targetId && t.type === 'PAYMENT') {
+                const amount = Number(t.amount) || 0;
+                pending += amount;
+            }
+        });
+        return pending;
+    };
+
     const addTransaction = async (transaction) => {
         try {
+            // Determine default verified status based on requirements:
+            // - CONSUMPTION and PURCHASE_BOTE -> true
+            // - ADVANCE and PAYMENT -> false
+            let verified = false;
+            if (transaction.type === 'CONSUMPTION' || transaction.type === 'PURCHASE_BOTE') {
+                verified = true;
+            }
+
             const newTx = {
                 ...transaction,
+                verified: transaction.verified !== undefined ? transaction.verified : verified,
                 timestamp: serverTimestamp()
             };
             await addDoc(collection(db, "transactions"), newTx);
@@ -198,6 +220,7 @@ export const AppProvider = ({ children }) => {
         loadingAuth,
         loadingData,
         getMemberBalance,
+        getMemberPendingBalance,
         getPotBalance,
         addTransaction,
         login,

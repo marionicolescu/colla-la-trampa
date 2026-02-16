@@ -4,7 +4,7 @@ import Modal from '../components/Modal';
 import { ArrowUpIcon, ArrowDownIcon, ShoppingCartIcon, CurrencyEuroIcon, ArrowRightOnRectangleIcon, ClockIcon } from '@heroicons/react/24/outline';
 
 export default function Home() {
-    const { members, transactions, currentUser, getMemberBalance, getPotBalance, addTransaction, logout, installPrompt, promptToInstall, appSettings } = useApp();
+    const { members, transactions, currentUser, getMemberBalance, getMemberPendingBalance, getPotBalance, addTransaction, logout, installPrompt, promptToInstall, appSettings } = useApp();
     const [selectedMember, setSelectedMember] = useState(null);
     const [showSettleConfirm, setShowSettleConfirm] = useState(false);
     const [secondsLeft, setSecondsLeft] = useState(0);
@@ -174,17 +174,47 @@ export default function Home() {
                                             }}>Tú</span>
                                         )}
                                     </div>
-                                    <div style={{ marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        <span style={{
-                                            fontSize: '1.25rem',
-                                            color: isNegative ? 'var(--danger)' : isPositive ? 'var(--success)' : 'inherit'
-                                        }}>
-                                            {balance > 0 ? '+' : ''}{fmt(balance)}
-                                        </span>
+                                    <div style={{ marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                                        {/* Main Balance with Badge */}
+                                        <div className="flex items-center gap-sm">
+                                            <span style={{
+                                                fontSize: '1.25rem',
+                                                fontWeight: 600,
+                                                color: isNegative ? 'var(--danger)' : isPositive ? 'var(--success)' : 'inherit'
+                                            }}>
+                                                {balance > 0 ? '+' : ''}{fmt(balance)}
+                                            </span>
+                                            {isNegative && <span style={{ backgroundColor: '#FEE2E2', color: '#B91C1C', padding: '0.125rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600 }}>Debe</span>}
+                                            {isPositive && <span style={{ backgroundColor: '#D1FAE5', color: '#047857', padding: '0.125rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600 }}>A favor</span>}
+                                            {!isNegative && !isPositive && <span style={{ backgroundColor: '#F3F4F6', color: '#374151', padding: '0.125rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600 }}>OK</span>}
+                                        </div>
 
-                                        {isNegative && <span style={{ backgroundColor: '#FEE2E2', color: '#B91C1C', padding: '0.125rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem' }}>Debe</span>}
-                                        {isPositive && <span style={{ backgroundColor: '#D1FAE5', color: '#047857', padding: '0.125rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem' }}>A favor</span>}
-                                        {!isNegative && !isPositive && <span style={{ backgroundColor: '#F3F4F6', color: '#374151', padding: '0.125rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem' }}>OK</span>}
+                                        {/* Pending Balance - Separated */}
+                                        {getMemberPendingBalance(member.id) !== 0 && (
+                                            <>
+                                                <span style={{ color: 'var(--border)', fontSize: '1.25rem', fontWeight: 300 }}>|</span>
+                                                <div style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.375rem',
+                                                    backgroundColor: 'rgba(217, 70, 239, 0.08)',
+                                                    padding: '0.25rem 0.625rem',
+                                                    borderRadius: '6px',
+                                                    border: '1px solid rgba(217, 70, 239, 0.2)'
+                                                }}>
+                                                    <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.025em' }}>
+                                                        Sin verificar
+                                                    </span>
+                                                    <span style={{
+                                                        fontSize: '0.875rem',
+                                                        color: 'var(--primary)',
+                                                        fontWeight: 600
+                                                    }}>
+                                                        ⌛ {fmt(Math.abs(getMemberPendingBalance(member.id)))}
+                                                    </span>
+                                                </div>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
 
