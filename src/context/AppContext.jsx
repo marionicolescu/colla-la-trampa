@@ -152,7 +152,8 @@ export const AppProvider = ({ children }) => {
                 if (t.type === 'CONSUMPTION') balance -= amount;
                 if (t.type === 'PAYMENT') balance += amount;
                 if (t.type === 'PURCHASE_BOTE') balance += amount;
-                if (t.type === 'ADVANCE') balance += amount;
+                // Only count ADVANCE if verified
+                if (t.type === 'ADVANCE' && t.verified === true) balance += amount;
             }
         });
         return balance;
@@ -162,24 +163,54 @@ export const AppProvider = ({ children }) => {
         let pot = 0;
         transactions.forEach(t => {
             const amount = Number(t.amount) || 0;
-            if (t.type === 'PAYMENT') pot += amount;
+            // Only count PAYMENT if verified
+            if (t.type === 'PAYMENT' && t.verified === true) pot += amount;
             if (t.type === 'PURCHASE_BOTE') pot -= amount;
-            if (t.type === 'ADVANCE') pot += amount;
+            // Only count ADVANCE in the pot if verified
+            if (t.type === 'ADVANCE' && t.verified === true) pot += amount;
         });
         return pot;
     };
 
-    const getMemberPendingBalance = (memberId) => {
+    const getMemberPendingPayment = (memberId) => {
         let pending = 0;
         const targetId = Number(memberId);
         transactions.forEach(t => {
-            // Only count unverified PAYMENT transactions (not ADVANCE)
             if (t.verified === false && Number(t.memberId) === targetId && t.type === 'PAYMENT') {
                 const amount = Number(t.amount) || 0;
                 pending += amount;
             }
         });
         return pending;
+    };
+
+    const getMemberPendingAdvance = (memberId) => {
+        let pending = 0;
+        const targetId = Number(memberId);
+        transactions.forEach(t => {
+            if (t.verified === false && Number(t.memberId) === targetId && t.type === 'ADVANCE') {
+                const amount = Number(t.amount) || 0;
+                pending += amount;
+            }
+        });
+        return pending;
+    };
+
+    const getSystemPendingBalance = () => {
+        let total = 0;
+        transactions.forEach(t => {
+            if (t.verified === false && (t.type === 'PAYMENT' || t.type === 'ADVANCE')) {
+                total += (Number(t.amount) || 0);
+            }
+        });
+        return total;
+    };
+
+    const getSystemTotalDebt = () => {
+        return members.reduce((acc, m) => {
+            const bal = getMemberBalance(m.id);
+            return bal < 0 ? acc + Math.abs(bal) : acc;
+        }, 0);
     };
 
     const addTransaction = async (transaction) => {
@@ -272,7 +303,10 @@ export const AppProvider = ({ children }) => {
         loadingAuth,
         loadingData,
         getMemberBalance,
-        getMemberPendingBalance,
+        getMemberPendingPayment,
+        getMemberPendingAdvance,
+        getSystemPendingBalance,
+        getSystemTotalDebt,
         getPotBalance,
         addTransaction,
         login,

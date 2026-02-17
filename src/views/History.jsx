@@ -127,34 +127,16 @@ export default function History() {
 
                                 {/* Transaction ID */}
                                 {t.transactionId && (
-                                    <div
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            navigator.clipboard.writeText(t.transactionId);
-                                            showToast('ID copiado al portapapeles');
-                                        }}
-                                        style={{
-                                            fontSize: '0.625rem',
-                                            fontFamily: 'monospace',
-                                            color: '#9CA3AF',
-                                            backgroundColor: 'rgba(156, 163, 175, 0.1)',
-                                            padding: '0.125rem 0.375rem',
-                                            borderRadius: '0.25rem',
-                                            letterSpacing: '0.025em',
-                                            fontWeight: 600,
-                                            cursor: 'pointer',
-                                            transition: 'all 0.2s ease',
-                                        }}
-                                        title="Click para copiar ID"
-                                        onMouseEnter={(e) => {
-                                            e.currentTarget.style.backgroundColor = 'rgba(156, 163, 175, 0.2)';
-                                            e.currentTarget.style.color = 'var(--text-primary)';
-                                        }}
-                                        onMouseLeave={(e) => {
-                                            e.currentTarget.style.backgroundColor = 'rgba(156, 163, 175, 0.1)';
-                                            e.currentTarget.style.color = '#9CA3AF';
-                                        }}
-                                    >
+                                    <div style={{
+                                        fontSize: '0.625rem',
+                                        fontFamily: 'monospace',
+                                        color: '#9CA3AF',
+                                        backgroundColor: 'rgba(156, 163, 175, 0.1)',
+                                        padding: '0.125rem 0.375rem',
+                                        borderRadius: '0.25rem',
+                                        letterSpacing: '0.025em',
+                                        fontWeight: 600
+                                    }}>
                                         {t.transactionId}
                                     </div>
                                 )}

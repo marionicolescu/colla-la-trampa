@@ -1,11 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import Modal from '../components/Modal';
-import { ArrowUpIcon, ArrowDownIcon, ShoppingCartIcon, CurrencyEuroIcon, ArrowRightOnRectangleIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { ArrowUpIcon, ArrowDownIcon, ShoppingCartIcon, CurrencyEuroIcon, ArrowRightOnRectangleIcon, ClockIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
 
 export default function Home() {
-    const { members, transactions, currentUser, getMemberBalance, getMemberPendingBalance, getPotBalance, addTransaction, logout, installPrompt, promptToInstall, appSettings } = useApp();
+    const {
+        members,
+        transactions,
+        currentUser,
+        getMemberBalance,
+        getMemberPendingPayment,
+        getMemberPendingAdvance,
+        getSystemPendingBalance,
+        getSystemTotalDebt,
+        getPotBalance,
+        addTransaction,
+        logout,
+        installPrompt,
+        promptToInstall,
+        appSettings
+    } = useApp();
     const [selectedMember, setSelectedMember] = useState(null);
+    const [pendingMember, setPendingMember] = useState(null);
     const [showSettleConfirm, setShowSettleConfirm] = useState(false);
     const [secondsLeft, setSecondsLeft] = useState(0);
 
@@ -23,12 +39,8 @@ export default function Home() {
 
     const potBalance = getPotBalance();
     const myBalance = getMemberBalance(currentUser.id);
-
-    // Calculate total pending debt in the system (sum of all negative balances)
-    const totalPending = members.reduce((acc, m) => {
-        const bal = getMemberBalance(m.id);
-        return bal < 0 ? acc + Math.abs(bal) : acc;
-    }, 0);
+    const systemPending = getSystemPendingBalance();
+    const totalDebt = getSystemTotalDebt();
 
     const handleSettle = () => {
         addTransaction({
@@ -127,10 +139,16 @@ export default function Home() {
                 <div style={{ fontSize: '0.875rem', opacity: 0.9 }}>Dinero en efectivo</div>
             </div>
 
-            {/* Pending Card */}
-            <div className="card" style={{ textAlign: 'center', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
-                <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Pendiente total</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>{fmt(totalPending)}</div>
+            {/* Pending Stats Row */}
+            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div className="card" style={{ flex: 1, textAlign: 'center', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)', padding: '1rem' }}>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>Consumiciones</div>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--danger)' }}>{fmt(totalDebt)}</div>
+                </div>
+                <div className="card" style={{ flex: 1, textAlign: 'center', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)', padding: '1rem' }}>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>Por verificar</div>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#F59E0B' }}>{fmt(systemPending)}</div>
+                </div>
             </div>
 
             <h3 className="mb-md" style={{ color: 'var(--text-primary)' }}>Miembros</h3>
@@ -189,31 +207,30 @@ export default function Home() {
                                             {!isNegative && !isPositive && <span style={{ backgroundColor: '#F3F4F6', color: '#374151', padding: '0.125rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600 }}>OK</span>}
                                         </div>
 
-                                        {/* Pending Balance - Separated */}
-                                        {getMemberPendingBalance(member.id) !== 0 && (
-                                            <>
-                                                <span style={{ color: 'var(--border)', fontSize: '1.25rem', fontWeight: 300 }}>|</span>
-                                                <div style={{
+                                        {/* Pending Indicator Icon */}
+                                        {(getMemberPendingPayment(member.id) > 0 || getMemberPendingAdvance(member.id) > 0) && (
+                                            <div
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setPendingMember(member);
+                                                }}
+                                                style={{
                                                     display: 'flex',
                                                     alignItems: 'center',
-                                                    gap: '0.375rem',
-                                                    backgroundColor: 'rgba(217, 70, 239, 0.08)',
-                                                    padding: '0.25rem 0.625rem',
-                                                    borderRadius: '6px',
-                                                    border: '1px solid rgba(217, 70, 239, 0.2)'
-                                                }}>
-                                                    <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.025em' }}>
-                                                        Sin verificar
-                                                    </span>
-                                                    <span style={{
-                                                        fontSize: '0.875rem',
-                                                        color: 'var(--primary)',
-                                                        fontWeight: 600
-                                                    }}>
-                                                        ⌛ {fmt(Math.abs(getMemberPendingBalance(member.id)))}
-                                                    </span>
-                                                </div>
-                                            </>
+                                                    justifyContent: 'center',
+                                                    color: '#F59E0B',
+                                                    cursor: 'pointer',
+                                                    padding: '0.25rem',
+                                                    borderRadius: '50%',
+                                                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                                                    transition: 'all 0.2s ease',
+                                                }}
+                                                title="Ver montos sin verificar"
+                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(245, 158, 11, 0.2)'}
+                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(245, 158, 11, 0.1)'}
+                                            >
+                                                <ExclamationCircleIcon style={{ width: '1.25rem', height: '1.25rem' }} />
+                                            </div>
                                         )}
                                     </div>
                                 </div>
@@ -326,6 +343,52 @@ export default function Home() {
                 </div>
             </Modal>
 
+            {/* Pending Details Modal */}
+            {pendingMember && (
+                <Modal
+                    isOpen={!!pendingMember}
+                    onClose={() => setPendingMember(null)}
+                    title="SIN VERIFICAR"
+                >
+                    <div className="flex flex-col gap-lg" style={{ padding: '1rem 0' }}>
+                        {getMemberPendingPayment(pendingMember.id) > 0 && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', backgroundColor: 'rgba(245, 158, 11, 0.05)', borderRadius: '0.75rem', border: '1px solid rgba(245, 158, 11, 0.1)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                    <div style={{ backgroundColor: '#F59E0B', color: 'white', padding: '0.5rem', borderRadius: '0.5rem' }}>
+                                        <ArrowDownIcon style={{ width: '1.25rem' }} />
+                                    </div>
+                                    <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Pagos Pendientes</span>
+                                </div>
+                                <span style={{ fontSize: '1.25rem', fontWeight: 700, color: '#F59E0B' }}>
+                                    +{getMemberPendingPayment(pendingMember.id).toFixed(2)} €
+                                </span>
+                            </div>
+                        )}
+
+                        {getMemberPendingAdvance(pendingMember.id) > 0 && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', backgroundColor: 'rgba(147, 51, 234, 0.05)', borderRadius: '0.75rem', border: '1px solid rgba(147, 51, 234, 0.1)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                    <div style={{ backgroundColor: '#9333EA', color: 'white', padding: '0.5rem', borderRadius: '0.5rem' }}>
+                                        <CurrencyEuroIcon style={{ width: '1.25rem' }} />
+                                    </div>
+                                    <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Anticipos Pendientes</span>
+                                </div>
+                                <span style={{ fontSize: '1.25rem', fontWeight: 700, color: '#9333EA' }}>
+                                    +{getMemberPendingAdvance(pendingMember.id).toFixed(2)} €
+                                </span>
+                            </div>
+                        )}
+
+                        <button
+                            className="btn btn-primary"
+                            style={{ marginTop: '1rem', width: '100%' }}
+                            onClick={() => setPendingMember(null)}
+                        >
+                            Entendido
+                        </button>
+                    </div>
+                </Modal>
+            )}
         </div>
     );
 }
