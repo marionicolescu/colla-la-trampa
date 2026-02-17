@@ -9,6 +9,7 @@ import Statistics from './views/Statistics';
 
 import { useApp } from './context/AppContext';
 import Login from './views/Login';
+import Admin from './views/Admin';
 
 function AppContent() {
   const { currentUser, notification, loadingAuth, loadingData, appSettings } = useApp();
@@ -60,7 +61,9 @@ function AppContent() {
         {activeTab === 'compras' && <Purchases />}
         {activeTab === 'historial' && <History />}
         {activeTab === 'estadisticas' && <Statistics />}
+        {activeTab === 'admin' && <Admin />}
       </main>
+
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
 
       {notification && (

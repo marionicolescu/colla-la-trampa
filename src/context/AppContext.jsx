@@ -6,7 +6,10 @@ import {
     onSnapshot,
     query,
     orderBy,
-    serverTimestamp
+    serverTimestamp,
+    deleteDoc,
+    updateDoc,
+    doc
 } from 'firebase/firestore';
 import {
     signInWithEmailAndPassword,
@@ -227,6 +230,29 @@ export const AppProvider = ({ children }) => {
         setTimeout(() => setNotification(null), 3000);
     };
 
+    // Admin functions
+    const deleteTransaction = async (transactionId) => {
+        try {
+            await deleteDoc(doc(db, "transactions", transactionId));
+            showToast('Transacción eliminada');
+        } catch (error) {
+            showToast(`Error al eliminar: ${error.message}`);
+        }
+    };
+
+    const updateTransaction = async (transactionId, updates) => {
+        try {
+            await updateDoc(doc(db, "transactions", transactionId), updates);
+            showToast('Transacción actualizada');
+        } catch (error) {
+            showToast(`Error al actualizar: ${error.message}`);
+        }
+    };
+
+    const toggleVerification = async (transactionId, currentStatus) => {
+        await updateTransaction(transactionId, { verified: !currentStatus });
+    };
+
     const value = {
         members,
         catalog,
@@ -244,7 +270,10 @@ export const AppProvider = ({ children }) => {
         installPrompt,
         promptToInstall,
         notification,
-        showToast
+        showToast,
+        deleteTransaction,
+        updateTransaction,
+        toggleVerification
     }; return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
