@@ -234,7 +234,32 @@ export default function Admin() {
 
                             <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                    <span style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{t.transactionId || 'N/A'}</span>
+                                    <span
+                                        onClick={(e) => {
+                                            if (t.transactionId) {
+                                                e.stopPropagation();
+                                                navigator.clipboard.writeText(t.transactionId);
+                                                showToast('ID copiado');
+                                            }
+                                        }}
+                                        style={{
+                                            fontWeight: 700,
+                                            whiteSpace: 'nowrap',
+                                            cursor: t.transactionId ? 'pointer' : 'default',
+                                            padding: '0.1rem 0.3rem',
+                                            borderRadius: '0.2rem',
+                                            transition: 'background 0.2s'
+                                        }}
+                                        title={t.transactionId ? "Click para copiar ID" : ""}
+                                        onMouseEnter={(e) => {
+                                            if (t.transactionId) e.currentTarget.style.backgroundColor = 'rgba(156, 163, 175, 0.1)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.backgroundColor = 'transparent';
+                                        }}
+                                    >
+                                        {t.transactionId || 'N/A'}
+                                    </span>
                                     {t.verified ? <CheckCircleIcon style={{ width: '1rem', color: 'var(--success)' }} /> : <XCircleIcon style={{ width: '1rem', color: 'var(--danger)' }} />}
                                     <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{dateStr}</span>
                                 </div>
