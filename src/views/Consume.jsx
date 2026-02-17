@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { TrashIcon, ShoppingCartIcon } from '@heroicons/react/24/outline';
+import { TrashIcon, ShoppingCartIcon, UserIcon, UserGroupIcon, MinusIcon, PlusIcon } from '@heroicons/react/24/outline';
 
 export default function Consume() {
     const { currentUser, addTransaction, showToast, catalog } = useApp();
@@ -65,57 +65,27 @@ export default function Consume() {
     const itemCount = Object.values(cart).reduce((a, b) => a + b, 0);
 
     return (
-        <div className="container" style={{ paddingBottom: '5rem', minHeight: '100vh', color: 'var(--text-primary)' }}>
-            <h2 style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--text-primary)' }}>Consumir</h2>
+        <div className="container" style={{
+            paddingBottom: itemCount > 0 ? '10rem' : '5rem',
+            minHeight: '100vh',
+            color: 'var(--text-primary)',
+            transition: 'padding-bottom 0.4s ease'
+        }}>
+            <div className="header-container">
+                <h2 style={{ margin: 0 }}>Consumir</h2>
+            </div>
 
-            {/* User Toggle */}
-            <div className="flex flex-col items-center mb-md">
-                <div style={{ background: 'var(--border)', border: '1px solid var(--border)', borderRadius: '2rem', padding: '0.25rem', display: 'flex' }}>
-                    <button
-                        onClick={() => setIsGuest(false)}
-                        style={{
-                            padding: '0.5rem 1.5rem',
-                            borderRadius: '1.5rem',
-                            border: 'none',
-                            background: !isGuest ? 'var(--primary)' : 'transparent',
-                            color: !isGuest ? 'white' : 'var(--text-secondary)',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            transition: 'all 0.2s'
-                        }}
-                    >
-                        Yo
-                    </button>
-                    <button
-                        onClick={() => setIsGuest(true)}
-                        style={{
-                            padding: '0.5rem 1.5rem',
-                            borderRadius: '1.5rem',
-                            border: 'none',
-                            background: isGuest ? 'var(--primary)' : 'transparent',
-                            color: isGuest ? 'white' : 'var(--text-secondary)',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            transition: 'all 0.2s'
-                        }}
-                    >
-                        Invitado
-                    </button>
-                </div>
-                {isGuest && (
-                    <div style={{
-                        marginTop: '0.75rem',
-                        fontSize: '0.8125rem',
-                        fontWeight: 600,
-                        backgroundColor: 'rgba(236, 43, 120, 0.1)',
-                        color: 'var(--primary)',
-                        padding: '0.375rem 1rem',
-                        borderRadius: '1rem',
-                        border: '1px solid rgba(236, 43, 120, 0.2)'
-                    }}>
-                        Modo Invitado activo · Precios con recargo
-                    </div>
-                )}
+            {/* Simple Toggle for Guest Mode */}
+            <div className="toggle-row">
+                <span className={`toggle-label ${isGuest ? 'active' : ''}`}>Invitado</span>
+                <label className="switch">
+                    <input
+                        type="checkbox"
+                        checked={isGuest}
+                        onChange={(e) => setIsGuest(e.target.checked)}
+                    />
+                    <span className="slider-toggle"></span>
+                </label>
             </div>
 
             {/* Catalog Grid */}
@@ -138,9 +108,23 @@ export default function Consume() {
                                 backgroundColor: 'var(--bg-surface)',
                                 border: qty > 0 ? '2px solid var(--primary)' : '1px solid var(--border)',
                                 color: 'var(--text-primary)',
-                                transition: 'all 0.2s'
+                                transition: 'all 0.2s',
+                                transform: qty > 0 ? 'scale(1.02)' : 'scale(1)'
                             }}
                         >
+                            {/* Minus Button */}
+                            {qty > 0 && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        removeFromCart(item.id);
+                                    }}
+                                    className="card-minus"
+                                >
+                                    <MinusIcon style={{ width: '1rem' }} />
+                                </button>
+                            )}
+
                             <div style={{
                                 fontSize: '2.5rem',
                                 marginBottom: '0.5rem',
@@ -157,27 +141,17 @@ export default function Consume() {
                                     : 'none'
                             }}>
                                 {item.icon}
-                                {(item.isPremium || item.name?.toLowerCase().includes('premium')) && (
-                                    <div style={{
-                                        position: 'absolute',
-                                        width: '100%',
-                                        height: '100%',
-                                        background: 'radial-gradient(circle, rgba(251, 191, 36, 0.2) 0%, transparent 70%)',
-                                        zIndex: -1,
-                                        borderRadius: '50%'
-                                    }} />
-                                )}
                             </div>
                             <div style={{ fontWeight: 600, color: 'var(--text-primary)', textAlign: 'center' }}>{item.name}</div>
 
-                            {isGuest ? (
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textDecoration: 'line-through' }}>{item.price.toFixed(2)} €</div>
-                                    <div style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{item.guestPrice.toFixed(2)} €</div>
+                            <div className="price-stack">
+                                <div className={`price-item ${isGuest ? 'normal-strike' : ''}`} style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                    {item.price.toFixed(2)} €
                                 </div>
-                            ) : (
-                                <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>{item.price.toFixed(2)} €</div>
-                            )}
+                                <div className={`price-item ${isGuest ? 'guest-active' : ''}`} style={{ fontSize: '0.875rem' }}>
+                                    {item.guestPrice.toFixed(2)} €
+                                </div>
+                            </div>
 
                             {qty > 0 && (
                                 <div style={{
@@ -193,7 +167,8 @@ export default function Consume() {
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     fontSize: '0.875rem',
-                                    fontWeight: 'bold'
+                                    fontWeight: 'bold',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
                                 }}>
                                     {qty}
                                 </div>
@@ -203,54 +178,16 @@ export default function Consume() {
                 })}
             </div>
 
-            {/* Cart Summary Header */}
-            {itemCount > 0 && (
-                <div className="card mb-md" style={{ padding: '1rem' }}>
-                    <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>Resumen</h3>
-                    {Object.entries(cart).map(([id, qty]) => {
-                        const item = catalog.find(i => i.id === id);
-                        return (
-                            <div key={id} className="flex justify-between items-center" style={{ marginBottom: '0.5rem', fontSize: '0.875rem' }}>
-                                <div className="flex items-center gap-sm">
-                                    <span>{qty}x {item.name}</span>
-                                </div>
-                                <div className="flex items-center gap-sm">
-                                    <span>{((isGuest ? item.guestPrice : item.price) * qty).toFixed(2)} €</span>
-                                    <button onClick={(e) => { e.stopPropagation(); removeFromCart(id); }} style={{ color: 'red', background: 'none', border: 'none', cursor: 'pointer' }}>
-                                        <TrashIcon style={{ width: '1rem' }} />
-                                    </button>
-                                </div>
-                            </div>
-                        )
-                    })}
-                    <div style={{ borderTop: '1px solid var(--border)', marginTop: '0.5rem', paddingTop: '0.5rem', display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
-                        <span>Total</span>
-                        <span>{total.toFixed(2)} €</span>
-                    </div>
-                </div>
-            )}
-
-            {/* Floating Action Button for Checkout */}
-            {itemCount > 0 && (
+            {/* Simplified Floating Action Button */}
+            <div className={`floating-action-bar ${itemCount === 0 ? 'hidden' : ''}`}>
                 <button
                     onClick={handleSubmit}
-                    className="btn btn-primary"
-                    style={{
-                        position: 'fixed',
-                        bottom: '5rem', // above nav
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        width: '90%',
-                        maxWidth: '540px',
-                        padding: '1rem',
-                        boxShadow: 'var(--shadow-lg)',
-                        zIndex: 900
-                    }}
+                    className="btn-floating-total"
                 >
-                    <ShoppingCartIcon style={{ width: '1.5rem', marginRight: '0.5rem' }} />
-                    {isGuest ? `Apuntar invitado (${total.toFixed(2)} €)` : `Apuntar (${total.toFixed(2)} €)`}
+                    <PlusIcon style={{ width: '1.25rem', height: '1.25rem' }} />
+                    Apuntar ({total.toFixed(2)} €)
                 </button>
-            )}
+            </div>
         </div>
     );
 }

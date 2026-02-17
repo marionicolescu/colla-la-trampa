@@ -144,6 +144,206 @@ body {
   margin-bottom: var(--spacing-md);
 }
 
+/* Integrated Pill Switch */
+/* Classic Toggle Switch (iOS Style) */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  /* Removed background for perfect integration */
+  width: fit-content;
+  margin: 0 auto 2rem auto;
+}
+
+.toggle-label {
+  font-size: 1.05rem;
+  /* Made larger as requested */
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.toggle-label.active {
+  color: var(--text-primary);
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 52px;
+  /* Increased width */
+  height: 28px;
+  /* Increased height */
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider-toggle {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #333;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.slider-toggle:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  /* Increased relative to switch height */
+  width: 22px;
+  /* Increased relative to switch width */
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+input:checked+.slider-toggle {
+  background-color: var(--primary);
+}
+
+input:focus+.slider-toggle {
+  box-shadow: 0 0 1px var(--primary);
+}
+
+input:checked+.slider-toggle:before {
+  transform: translateX(24px);
+  /* Adjusted for larger width */
+}
+
+/* Simplest Floating Action Button */
+.floating-action-bar {
+  position: fixed;
+  bottom: 5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: auto;
+  z-index: 900;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.floating-action-bar.hidden {
+  transform: translateX(-50%) translateY(200%);
+  opacity: 0;
+}
+
+.btn-floating-total {
+  background: var(--primary);
+  color: white;
+  padding: 0.875rem 2rem;
+  border-radius: 9999px;
+  font-weight: 800;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 10px 25px -5px rgba(236, 43, 120, 0.5);
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-floating-total:active {
+  transform: scale(0.95);
+  background: var(--primary-dark);
+}
+
+/* Price Animations */
+.price-stack {
+  position: relative;
+  height: 1.5rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.price-item {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.price-item.normal-strike {
+  text-decoration: line-through;
+  opacity: 0.5;
+  transform: translateY(-100%);
+}
+
+.price-item.guest-active {
+  transform: translateY(-100%);
+  color: var(--primary);
+  font-weight: bold;
+}
+
+/* Header Container */
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+/* Animations */
+@keyframes pulse-soft {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+
+  50% {
+    transform: scale(1.02);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+}
+
+.pulse {
+  animation: pulse-soft 2s infinite;
+}
+
+/* Card Controls */
+.card-minus {
+  position: absolute;
+  top: -0.5rem;
+  left: -0.5rem;
+  background: var(--border);
+  color: var(--text-primary);
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: bold;
+  border: 1px solid var(--border);
+  transition: all 0.2s;
+  z-index: 10;
+}
+
+.card-minus:active {
+  transform: scale(0.9);
+  background: var(--bg-surface);
+}
+
 /* Toast Notification */
 .toast-container {
   position: fixed;

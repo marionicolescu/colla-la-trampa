@@ -40,11 +40,22 @@ export default function Admin() {
         if (filterVerified === 'UNVERIFIED' && t.verified) return false;
 
         if (searchQuery) {
-            const query = searchQuery.toLowerCase();
-            const desc = (t.description || '').toLowerCase();
-            const txId = (t.transactionId || '').toLowerCase();
-            const member = members.find(m => m.id === t.memberId)?.name.toLowerCase() || '';
-            return desc.includes(query) || txId.includes(query) || member.includes(query);
+            const normalize = (str) => (str || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+            const orGroups = searchQuery.split('||').map(group => group.trim()).filter(Boolean);
+
+            // The item matches if ANY of the OR groups match
+            return orGroups.some(group => {
+                const andTerms = group.split('&&').map(term => term.trim()).filter(Boolean);
+
+                // A group matches only if ALL its AND terms match
+                return andTerms.every(term => {
+                    const normalizedTerm = normalize(term);
+                    const desc = normalize(t.description);
+                    const txId = normalize(t.transactionId);
+                    const memberName = normalize(members.find(m => m.id === t.memberId)?.name);
+                    return desc.includes(normalizedTerm) || txId.includes(normalizedTerm) || memberName.includes(normalizedTerm);
+                });
+            });
         }
 
         return true;
@@ -159,7 +170,7 @@ export default function Admin() {
                     <MagnifyingGlassIcon style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', width: '1.1rem', color: 'var(--text-secondary)' }} />
                     <input
                         type="text"
-                        placeholder="Buscar por ID, descripción o nombre..."
+                        placeholder="Buscar transacciones..."
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
                         style={{
@@ -175,39 +186,28 @@ export default function Admin() {
                 </div>
             </div>
 
-            {/* Selection Actions (Fixed at bottom) */}
+            {/* Admin Action Dock (Bottom) */}
             {selectedIds.length > 0 && (
-                <div style={{
-                    position: 'fixed',
-                    bottom: '5.5rem',
-                    left: '1rem',
-                    right: '1rem',
-                    zIndex: 1000,
-                    backgroundColor: 'rgba(236, 43, 120, 0.95)',
-                    backdropFilter: 'blur(10px)',
-                    color: 'white',
-                    padding: '0.75rem 1.25rem',
-                    borderRadius: '1rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    animation: 'slideUp 0.3s ease-out'
-                }}>
-                    <span style={{ fontWeight: 600 }}>{selectedIds.length} seleccionados</span>
-                    <div style={{ display: 'flex', gap: '0.75rem' }}>
-                        <button onClick={() => handleVerifyBulk(true)} className="btn-icon-white" title="Verificar seleccionados">
-                            <CheckCircleIcon style={{ width: '1.25rem' }} />
-                        </button>
-                        <button onClick={() => handleVerifyBulk(false)} className="btn-icon-white" title="Desverificar seleccionados">
-                            <XCircleIcon style={{ width: '1.25rem' }} />
-                        </button>
-                        <button onClick={() => setShowDeleteConfirm('bulk')} className="btn-icon-white" style={{ color: '#FEE2E2' }} title="Eliminar seleccionados">
-                            <TrashIcon style={{ width: '1.25rem' }} />
-                        </button>
-                        <button onClick={() => setSelectedIds([])} style={{ background: 'none', border: 'none', color: 'white', marginLeft: '0.5rem', cursor: 'pointer' }}>
-                            <XCircleIcon style={{ width: '1.5rem' }} />
+                <div className="admin-action-dock">
+                    <div className="admin-action-dock-inner">
+                        <div className="selection-info">
+                            <span className="selection-count">{selectedIds.length}</span>
+                        </div>
+
+                        <div className="admin-action-buttons">
+                            <button onClick={() => handleVerifyBulk(true)} className="admin-action-btn verify" title="Verificar">
+                                <CheckCircleIcon />
+                            </button>
+                            <button onClick={() => handleVerifyBulk(false)} className="admin-action-btn unverify" title="Desverificar">
+                                <XCircleIcon />
+                            </button>
+                            <button onClick={() => setShowDeleteConfirm('bulk')} className="admin-action-btn delete" title="Eliminar">
+                                <TrashIcon />
+                            </button>
+                        </div>
+
+                        <button onClick={() => setSelectedIds([])} className="admin-action-close">
+                            <XCircleIcon style={{ width: '1.75rem' }} />
                         </button>
                     </div>
                 </div>
@@ -382,68 +382,103 @@ export default function Admin() {
                     color: var(--text-primary);
                     outline: none;
                 }
-                .btn-icon-white {
-                    background: rgba(255, 255, 255, 0.2);
-                    border: none;
+                .admin-action-dock {
+                    position: fixed;
+                    bottom: 4rem; /* Just above BottomNav */
+                    left: 0;
+                    right: 0;
+                    z-index: 1000;
+                    animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    maxWidth: 600px;
+                    margin: 0 auto;
+                }
+
+                .admin-action-dock-inner {
+                    background: rgba(0, 0, 0, 0.85);
+                    backdrop-filter: blur(16px);
+                    -webkit-backdrop-filter: blur(16px);
+                    border-top: 2px solid var(--primary);
+                    padding: 0.75rem 1.25rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.5);
+                }
+
+                .selection-info {
+                    display: flex;
+                    align-items: center;
+                }
+
+                .selection-count {
+                    background: var(--primary);
                     color: white;
-                    padding: 0.4rem;
-                    border-radius: 0.4rem;
+                    min-width: 2rem;
+                    height: 2rem;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: 800;
+                    font-size: 0.9rem;
+                    box-shadow: 0 4px 12px rgba(236, 43, 120, 0.3);
+                }
+
+                .admin-action-buttons {
+                    display: flex;
+                    gap: 1.25rem;
+                    position: absolute;
+                    left: 50%;
+                    transform: translateX(-50%);
+                }
+
+                .admin-action-btn {
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    color: white;
+                    width: 3.5rem;
+                    height: 3.5rem;
+                    border-radius: 1.25rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
+
+                .admin-action-btn svg {
+                    width: 1.75rem;
+                    height: 1.75rem;
+                }
+
+                .admin-action-btn:active {
+                    transform: scale(0.9);
+                }
+
+                .admin-action-btn.verify { color: var(--success); }
+                .admin-action-btn.unverify { color: var(--warning); }
+                .admin-action-btn.delete { color: var(--danger); }
+
+                .admin-action-btn.verify:hover { background: rgba(5, 150, 105, 0.1); border-color: var(--success); }
+                .admin-action-btn.unverify:hover { background: rgba(217, 119, 6, 0.1); border-color: var(--warning); }
+                .admin-action-btn.delete:hover { background: rgba(220, 38, 38, 0.1); border-color: var(--danger); }
+
+                .admin-action-close {
+                    background: none;
+                    border: none;
+                    color: var(--text-secondary);
                     cursor: pointer;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    transition: background 0.2s;
+                    padding: 0.5rem;
+                    transition: color 0.2s;
                 }
-                .btn-icon-white:hover {
-                    background: rgba(255, 255, 255, 0.3);
+
+                .admin-action-close:hover {
+                    color: white;
                 }
-                /* Switch styles */
-                .switch {
-                    position: relative;
-                    display: inline-block;
-                    width: 44px;
-                    height: 24px;
-                }
-                .switch input {
-                    opacity: 0;
-                    width: 0;
-                    height: 0;
-                }
-                .slider {
-                    position: absolute;
-                    cursor: pointer;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background-color: var(--border);
-                    transition: .4s;
-                }
-                .slider:before {
-                    position: absolute;
-                    content: "";
-                    height: 18px;
-                    width: 18px;
-                    left: 3px;
-                    bottom: 3px;
-                    background-color: white;
-                    transition: .4s;
-                }
-                input:checked + .slider {
-                    background-color: var(--primary);
-                }
-                input:focus + .slider {
-                    box-shadow: 0 0 1px var(--primary);
-                }
-                input:checked + .slider:before {
-                    transform: translateX(20px);
-                }
-                .slider.round {
-                    border-radius: 24px;
-                }
-                .slider.round:before {
-                    border-radius: 50%;
-                }
+
                 @keyframes slideUp {
                     from { transform: translateY(100%); opacity: 0; }
                     to { transform: translateY(0); opacity: 1; }
