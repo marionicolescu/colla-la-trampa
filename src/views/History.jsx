@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { ArrowUpIcon, ArrowDownIcon, ShoppingCartIcon, CurrencyEuroIcon } from '@heroicons/react/24/outline'; // Adjust icons
+import { ArrowUpIcon, ArrowDownIcon, ShoppingCartIcon, CurrencyEuroIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline'; // Adjust icons
 
 export default function History() {
-    const { transactions, members } = useApp();
+    const { transactions, members, showToast } = useApp();
     const [filter, setFilter] = useState('ALL'); // ALL,  CONSUMPTION, PAYMENT, PURCHASE_BOTE
 
     const filtered = transactions.filter(t => {
@@ -127,16 +127,35 @@ export default function History() {
 
                                 {/* Transaction ID */}
                                 {t.transactionId && (
-                                    <div style={{
-                                        fontSize: '0.625rem',
-                                        fontFamily: 'monospace',
-                                        color: '#9CA3AF',
-                                        backgroundColor: 'rgba(156, 163, 175, 0.1)',
-                                        padding: '0.125rem 0.375rem',
-                                        borderRadius: '0.25rem',
-                                        letterSpacing: '0.025em',
-                                        fontWeight: 600
-                                    }}>
+                                    <div
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            navigator.clipboard.writeText(t.transactionId);
+                                            showToast('ID copiado: ' + t.transactionId);
+                                            // Simple feedback for mobile touch
+                                            e.currentTarget.style.backgroundColor = 'rgba(156, 163, 175, 0.3)';
+                                            setTimeout(() => {
+                                                if (e.currentTarget) e.currentTarget.style.backgroundColor = 'rgba(156, 163, 175, 0.1)';
+                                            }, 200);
+                                        }}
+                                        style={{
+                                            fontSize: '0.7rem',
+                                            fontFamily: 'monospace',
+                                            color: '#9CA3AF',
+                                            backgroundColor: 'rgba(156, 163, 175, 0.1)',
+                                            padding: '0.25rem 0.5rem',
+                                            borderRadius: '0.375rem',
+                                            letterSpacing: '0.025em',
+                                            fontWeight: 600,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.25rem',
+                                            cursor: 'pointer',
+                                            transition: 'background-color 0.2s',
+                                            webkitTapHighlightColor: 'transparent'
+                                        }}
+                                    >
+                                        <DocumentDuplicateIcon style={{ width: '0.8rem', height: '0.8rem', opacity: 0.7 }} />
                                         {t.transactionId}
                                     </div>
                                 )}
