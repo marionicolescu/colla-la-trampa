@@ -125,13 +125,13 @@ export default function Admin() {
                                 : 'La app está abierta a todos los usuarios'}
                         </div>
                     </div>
-                    <label className="switch">
+                    <label className="maintenance-switch">
                         <input
                             type="checkbox"
                             checked={appSettings?.maintenanceMode || false}
                             onChange={(e) => updateAppSettings({ maintenanceMode: e.target.checked })}
                         />
-                        <span className="slider round"></span>
+                        <span className="maintenance-slider round"></span>
                     </label>
                 </div>
             </div>
@@ -477,6 +477,56 @@ export default function Admin() {
 
                 .admin-action-close:hover {
                     color: white;
+                }
+
+                /* Maintenance Switch Style Isolation */
+                .maintenance-switch {
+                    position: relative;
+                    display: inline-block;
+                    width: 44px;
+                    height: 24px;
+                }
+                .maintenance-switch input {
+                    opacity: 0;
+                    width: 0;
+                    height: 0;
+                }
+                .maintenance-slider {
+                    position: absolute;
+                    cursor: pointer;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background-color: #333;
+                    transition: .4s;
+                    border-radius: 34px;
+                    border: 1px solid var(--border);
+                }
+                .maintenance-slider:before {
+                    position: absolute;
+                    content: "";
+                    height: 18px;
+                    width: 18px;
+                    left: 2px;
+                    bottom: 2px;
+                    background-color: white;
+                    transition: .4s;
+                    border-radius: 50%;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                }
+                input:checked + .maintenance-slider {
+                    background-color: var(--primary);
+                    border-color: var(--primary);
+                }
+                input:checked + .maintenance-slider:before {
+                    transform: translateX(20px);
+                }
+                .maintenance-slider.round {
+                    border-radius: 34px;
+                }
+                .maintenance-slider.round:before {
+                    border-radius: 50%;
                 }
 
                 @keyframes slideUp {
