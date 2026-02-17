@@ -175,24 +175,28 @@ export default function Admin() {
                 </div>
             </div>
 
-            {/* Selection Actions */}
+            {/* Selection Actions (Fixed at bottom) */}
             {selectedIds.length > 0 && (
                 <div style={{
-                    position: 'sticky',
-                    top: '1rem',
-                    zIndex: 100,
-                    backgroundColor: 'var(--primary)',
+                    position: 'fixed',
+                    bottom: '2rem',
+                    left: '1rem',
+                    right: '1rem',
+                    zIndex: 1000,
+                    backgroundColor: 'rgba(217, 70, 239, 0.95)',
+                    backdropFilter: 'blur(10px)',
                     color: 'white',
-                    padding: '0.75rem 1rem',
-                    borderRadius: '0.75rem',
+                    padding: '0.75rem 1.25rem',
+                    borderRadius: '1rem',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    boxShadow: 'var(--shadow-lg)',
-                    marginBottom: '1rem'
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    animation: 'slideUp 0.3s ease-out'
                 }}>
                     <span style={{ fontWeight: 600 }}>{selectedIds.length} seleccionados</span>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
                         <button onClick={() => handleVerifyBulk(true)} className="btn-icon-white" title="Verificar seleccionados">
                             <CheckCircleIcon style={{ width: '1.25rem' }} />
                         </button>
@@ -439,6 +443,10 @@ export default function Admin() {
                 }
                 .slider.round:before {
                     border-radius: 50%;
+                }
+                @keyframes slideUp {
+                    from { transform: translateY(100%); opacity: 0; }
+                    to { transform: translateY(0); opacity: 1; }
                 }
             `}</style>
 

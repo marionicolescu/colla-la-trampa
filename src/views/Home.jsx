@@ -359,7 +359,7 @@ export default function Home() {
                                     </div>
                                     <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Pagos Pendientes</span>
                                 </div>
-                                <span style={{ fontSize: '1.25rem', fontWeight: 700, color: '#F59E0B' }}>
+                                <span style={{ fontSize: '1.15rem', fontWeight: 700, color: '#F59E0B', whiteSpace: 'nowrap' }}>
                                     +{getMemberPendingPayment(pendingMember.id).toFixed(2)} €
                                 </span>
                             </div>
@@ -373,7 +373,7 @@ export default function Home() {
                                     </div>
                                     <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Anticipos Pendientes</span>
                                 </div>
-                                <span style={{ fontSize: '1.25rem', fontWeight: 700, color: '#9333EA' }}>
+                                <span style={{ fontSize: '1.15rem', fontWeight: 700, color: '#9333EA', whiteSpace: 'nowrap' }}>
                                     +{getMemberPendingAdvance(pendingMember.id).toFixed(2)} €
                                 </span>
                             </div>
