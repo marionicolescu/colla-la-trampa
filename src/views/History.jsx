@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { ArrowUpIcon, ArrowDownIcon, ShoppingCartIcon, CurrencyEuroIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline'; // Adjust icons
+import { ArrowUpIcon, ArrowDownIcon, ShoppingCartIcon, CurrencyEuroIcon } from '@heroicons/react/24/outline'; // Adjust icons
 
 export default function History() {
     const { transactions, members, showToast } = useApp();
@@ -99,15 +99,23 @@ export default function History() {
                     const dateStr = date.toLocaleDateString() + ' · ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
                     return (
-                        <div key={t.id} className="card flex items-center gap-md" style={{ borderLeft: `4px solid ${borderColor}`, paddingLeft: '1rem', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)', borderLeftWidth: '4px', position: 'relative' }}>
+                        <div key={t.id} className="card flex items-center gap-sm" style={{
+                            borderLeft: `4px solid ${borderColor}`,
+                            padding: '0.75rem 0.5rem 0.75rem 0.75rem',
+                            backgroundColor: 'var(--bg-surface)',
+                            border: '1px solid var(--border)',
+                            borderLeftWidth: '4px',
+                            position: 'relative'
+                        }}>
                             {/* Transaction ID and verification status in top-right corner */}
                             <div style={{
                                 position: 'absolute',
-                                top: '0.5rem',
-                                right: '0.5rem',
+                                top: '0.4rem',
+                                right: '0.4rem',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '0.25rem'
+                                gap: '0.25rem',
+                                zIndex: 1
                             }}>
                                 {/* Verification status indicator */}
                                 {t.verified !== undefined && (
@@ -139,37 +147,33 @@ export default function History() {
                                             }, 200);
                                         }}
                                         style={{
-                                            fontSize: '0.7rem',
+                                            fontSize: '0.65rem',
                                             fontFamily: 'monospace',
                                             color: '#9CA3AF',
                                             backgroundColor: 'rgba(156, 163, 175, 0.1)',
-                                            padding: '0.25rem 0.5rem',
-                                            borderRadius: '0.375rem',
-                                            letterSpacing: '0.025em',
+                                            padding: '0.2rem 0.4rem',
+                                            borderRadius: '0.3rem',
+                                            letterSpacing: '0.01em',
                                             fontWeight: 600,
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '0.25rem',
                                             cursor: 'pointer',
                                             transition: 'background-color 0.2s',
                                             webkitTapHighlightColor: 'transparent'
                                         }}
                                     >
-                                        <DocumentDuplicateIcon style={{ width: '0.8rem', height: '0.8rem', opacity: 0.7 }} />
                                         {t.transactionId}
                                     </div>
                                 )}
                             </div>
 
-                            <div>{icon}</div>
-                            <div style={{ flex: 1 }}>
-                                <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{title}</div>
-                                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                            <div style={{ flexShrink: 0 }}>{icon}</div>
+                            <div style={{ flex: 1, minWidth: 0, paddingRight: '4.5rem' }}>
+                                <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</div>
+                                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                     {t.description || t.type}
                                 </div>
-                                <div style={{ fontSize: '0.75rem', color: '#9CA3AF' }}>{dateStr}</div>
+                                <div style={{ fontSize: '0.7rem', color: '#9CA3AF' }}>{dateStr}</div>
                             </div>
-                            <div className={amountClass} style={{ fontWeight: 'bold', fontSize: '1.125rem' }}>
+                            <div className={amountClass} style={{ fontWeight: 'bold', fontSize: '1rem', flexShrink: 0 }}>
                                 {amountSign}{t.amount.toFixed(2)} €
                             </div>
                         </div>
