@@ -100,24 +100,47 @@ export default function History() {
 
                     return (
                         <div key={t.id} className="card flex items-center gap-md" style={{ borderLeft: `4px solid ${borderColor}`, paddingLeft: '1rem', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)', borderLeftWidth: '4px', position: 'relative' }}>
-                            {/* Transaction ID in top-right corner */}
-                            {t.transactionId && (
-                                <div style={{
-                                    position: 'absolute',
-                                    top: '0.5rem',
-                                    right: '0.5rem',
-                                    fontSize: '0.625rem',
-                                    fontFamily: 'monospace',
-                                    color: '#9CA3AF',
-                                    backgroundColor: 'rgba(156, 163, 175, 0.1)',
-                                    padding: '0.125rem 0.375rem',
-                                    borderRadius: '0.25rem',
-                                    letterSpacing: '0.025em',
-                                    fontWeight: 600
-                                }}>
-                                    {t.transactionId}
-                                </div>
-                            )}
+                            {/* Transaction ID and verification status in top-right corner */}
+                            <div style={{
+                                position: 'absolute',
+                                top: '0.5rem',
+                                right: '0.5rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.25rem'
+                            }}>
+                                {/* Verification status indicator */}
+                                {t.verified !== undefined && (
+                                    <div style={{
+                                        fontSize: '0.75rem',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    }} title={t.verified ? 'Verificada' : 'Sin verificar'}>
+                                        {t.verified ? (
+                                            <span style={{ color: '#10B981' }}>✓</span>
+                                        ) : (
+                                            <span style={{ color: '#F59E0B' }}>⌛</span>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Transaction ID */}
+                                {t.transactionId && (
+                                    <div style={{
+                                        fontSize: '0.625rem',
+                                        fontFamily: 'monospace',
+                                        color: '#9CA3AF',
+                                        backgroundColor: 'rgba(156, 163, 175, 0.1)',
+                                        padding: '0.125rem 0.375rem',
+                                        borderRadius: '0.25rem',
+                                        letterSpacing: '0.025em',
+                                        fontWeight: 600
+                                    }}>
+                                        {t.transactionId}
+                                    </div>
+                                )}
+                            </div>
 
                             <div>{icon}</div>
                             <div style={{ flex: 1 }}>
