@@ -107,11 +107,11 @@ export default function Consume() {
                         marginTop: '0.75rem',
                         fontSize: '0.8125rem',
                         fontWeight: 600,
-                        backgroundColor: 'rgba(217, 70, 239, 0.1)',
+                        backgroundColor: 'rgba(236, 43, 120, 0.1)',
                         color: 'var(--primary)',
                         padding: '0.375rem 1rem',
                         borderRadius: '1rem',
-                        border: '1px solid rgba(217, 70, 239, 0.2)'
+                        border: '1px solid rgba(236, 43, 120, 0.2)'
                     }}>
                         Modo Invitado activo · Precios con recargo
                     </div>

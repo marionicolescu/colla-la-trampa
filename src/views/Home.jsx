@@ -90,17 +90,17 @@ export default function Home() {
 
             {secondsLeft > 0 && (
                 <div style={{
-                    background: 'rgba(217, 70, 239, 0.05)',
+                    background: 'rgba(236, 43, 120, 0.05)',
                     backdropFilter: 'blur(10px)',
                     WebkitBackdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(217, 70, 239, 0.3)',
+                    border: '1px solid rgba(236, 43, 120, 0.3)',
                     borderRadius: '1rem',
                     padding: '1rem',
                     marginBottom: '1.5rem',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '1rem',
-                    boxShadow: '0 0 20px rgba(217, 70, 239, 0.1)',
+                    boxShadow: '0 0 20px rgba(236, 43, 120, 0.1)',
                     color: 'var(--text-primary)'
                 }}>
                     <div style={{
@@ -108,7 +108,7 @@ export default function Home() {
                         padding: '0.6rem',
                         borderRadius: '0.75rem',
                         display: 'flex',
-                        boxShadow: '0 0 10px rgba(217, 70, 239, 0.3)'
+                        boxShadow: '0 0 10px rgba(236, 43, 120, 0.3)'
                     }}>
                         <ClockIcon style={{ width: '1.25rem', height: '1.25rem', color: 'white' }} />
                     </div>
@@ -173,9 +173,9 @@ export default function Home() {
                                 style={{
                                     padding: '1rem',
                                     cursor: 'pointer',
-                                    backgroundColor: isMe ? 'rgba(217, 70, 239, 0.1)' : 'var(--bg-surface)',
+                                    backgroundColor: isMe ? 'rgba(236, 43, 120, 0.1)' : 'var(--bg-surface)',
                                     border: isMe ? '1px solid var(--primary)' : '1px solid var(--border)',
-                                    boxShadow: isMe ? '0 0 10px rgba(217, 70, 239, 0.2)' : 'var(--shadow-sm)',
+                                    boxShadow: isMe ? '0 0 10px rgba(236, 43, 120, 0.2)' : 'var(--shadow-sm)',
                                     marginBottom: isMe ? '1.5rem' : '0.5rem',
                                     borderRadius: '0.5rem',
                                     color: 'var(--text-primary)'

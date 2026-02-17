@@ -1,20 +1,16 @@
 :root {
-  /* Colors - Fuchsia & Black Theme */
-  --primary: #d946ef;
-  /* Vibrant Fuchsia */
-  --primary-dark: #c026d3;
-  --danger: #ef4444;
-  --success: #10b981;
+  /* Colors - New Raspberry Pink Theme */
+  --primary: #EC2B78;
+  /* rgb(236, 43, 120) */
+  --primary-dark: #D41E65;
+  --danger: #DC2626;
+  --success: #059669;
+  --warning: #D97706;
   --bg-app: #000000;
-  /* Strong Black */
   --bg-surface: #000000;
-  /* Strong Black */
-  --text-primary: #f9fafb;
-  /* Near White */
-  --text-secondary: #a3a3a3;
-  /* Muted Gray */
+  --text-primary: #F9FAFB;
+  --text-secondary: #A3A3A3;
   --border: #262626;
-  /* Dark Border */
 
   /* Typography */
   --font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;

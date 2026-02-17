@@ -183,7 +183,7 @@ export default function Admin() {
                     left: '1rem',
                     right: '1rem',
                     zIndex: 1000,
-                    backgroundColor: 'rgba(217, 70, 239, 0.95)',
+                    backgroundColor: 'rgba(236, 43, 120, 0.95)',
                     backdropFilter: 'blur(10px)',
                     color: 'white',
                     padding: '0.75rem 1.25rem',
@@ -230,7 +230,7 @@ export default function Admin() {
                     return (
                         <div key={t.id} className="card flex items-center gap-md" style={{
                             padding: '0.75rem 1rem',
-                            backgroundColor: isSelected ? 'rgba(217, 70, 239, 0.05)' : 'var(--bg-surface)',
+                            backgroundColor: isSelected ? 'rgba(236, 43, 120, 0.05)' : 'var(--bg-surface)',
                             border: isSelected ? '1px solid var(--primary)' : '1px solid var(--border)',
                             fontSize: '0.875rem'
                         }}>
