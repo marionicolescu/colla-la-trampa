@@ -23,7 +23,7 @@ export default function Purchases() {
             addTransaction({
                 type: 'PURCHASE_BOTE',
                 amount: val,
-                memberId: null,
+                memberId: currentUser.id, // Changed from null to currentUser.id
                 description: note || 'Compra del bote',
                 date: new Date().toISOString()
             });

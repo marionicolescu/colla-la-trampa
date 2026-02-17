@@ -190,11 +190,9 @@ export const AppProvider = ({ children }) => {
             }
 
             // Get member alias for transaction ID generation
-            let memberAlias = 'BO'; // Default for PURCHASE_BOTE (bote)
-            if (transaction.memberId) {
-                const member = members.find(m => m.id === transaction.memberId);
-                memberAlias = member?.alias || 'XX'; // Fallback if alias not found
-            }
+            const member = members.find(m => m.id === transaction.memberId);
+            const memberAlias = member?.alias || 'XX'; // Fallback if alias not found
+
 
             // Generate unique transaction ID
             const transactionId = await generateTransactionId({
