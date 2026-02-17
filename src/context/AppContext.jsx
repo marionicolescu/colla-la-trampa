@@ -14,6 +14,7 @@ import {
     onAuthStateChanged,
     signOut
 } from 'firebase/auth';
+import { generateTransactionId } from '../utils/generateTransactionId';
 
 const AppContext = createContext();
 
@@ -188,9 +189,25 @@ export const AppProvider = ({ children }) => {
                 verified = true;
             }
 
+            // Get member alias for transaction ID generation
+            let memberAlias = 'BO'; // Default for PURCHASE_BOTE (bote)
+            if (transaction.memberId) {
+                const member = members.find(m => m.id === transaction.memberId);
+                memberAlias = member?.alias || 'XX'; // Fallback if alias not found
+            }
+
+            // Generate unique transaction ID
+            const transactionId = await generateTransactionId({
+                type: transaction.type,
+                memberAlias: memberAlias,
+                date: new Date(),
+                db: db
+            });
+
             const newTx = {
                 ...transaction,
                 verified: transaction.verified !== undefined ? transaction.verified : verified,
+                transactionId: transactionId,
                 timestamp: serverTimestamp()
             };
             await addDoc(collection(db, "transactions"), newTx);
@@ -198,6 +215,7 @@ export const AppProvider = ({ children }) => {
             showToast(`Error al guardar: ${error.message}`);
         }
     };
+
 
     const promptToInstall = async () => {
         if (!installPrompt) return;

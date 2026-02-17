@@ -99,7 +99,26 @@ export default function History() {
                     const dateStr = date.toLocaleDateString() + ' · ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
                     return (
-                        <div key={t.id} className="card flex items-center gap-md" style={{ borderLeft: `4px solid ${borderColor}`, paddingLeft: '1rem', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)', borderLeftWidth: '4px' }}>
+                        <div key={t.id} className="card flex items-center gap-md" style={{ borderLeft: `4px solid ${borderColor}`, paddingLeft: '1rem', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)', borderLeftWidth: '4px', position: 'relative' }}>
+                            {/* Transaction ID in top-right corner */}
+                            {t.transactionId && (
+                                <div style={{
+                                    position: 'absolute',
+                                    top: '0.5rem',
+                                    right: '0.5rem',
+                                    fontSize: '0.625rem',
+                                    fontFamily: 'monospace',
+                                    color: '#9CA3AF',
+                                    backgroundColor: 'rgba(156, 163, 175, 0.1)',
+                                    padding: '0.125rem 0.375rem',
+                                    borderRadius: '0.25rem',
+                                    letterSpacing: '0.025em',
+                                    fontWeight: 600
+                                }}>
+                                    {t.transactionId}
+                                </div>
+                            )}
+
                             <div>{icon}</div>
                             <div style={{ flex: 1 }}>
                                 <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{title}</div>
