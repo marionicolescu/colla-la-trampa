@@ -95,7 +95,7 @@ export default function Admin() {
     };
 
     return (
-        <div className="container" style={{ paddingBottom: '5rem', minHeight: '100vh', color: 'var(--text-primary)' }}>
+        <div className="container" style={{ paddingBottom: '7rem', minHeight: '100vh', color: 'var(--text-primary)' }}>
             <h2 style={{ textAlign: 'center', marginBottom: '1.5rem', color: 'var(--primary)', fontWeight: 'bold' }}>Panel Admin</h2>
 
             {/* Global Settings */}
@@ -179,7 +179,7 @@ export default function Admin() {
             {selectedIds.length > 0 && (
                 <div style={{
                     position: 'fixed',
-                    bottom: '2rem',
+                    bottom: '5.5rem',
                     left: '1rem',
                     right: '1rem',
                     zIndex: 1000,
