@@ -8,7 +8,8 @@ import {
     XCircleIcon,
     FunnelIcon,
     MagnifyingGlassIcon,
-    ExclamationTriangleIcon
+    ExclamationTriangleIcon,
+    WrenchScrewdriverIcon
 } from '@heroicons/react/24/outline';
 
 export default function Admin() {
@@ -18,6 +19,8 @@ export default function Admin() {
         deleteTransaction,
         updateTransaction,
         toggleVerification,
+        updateAppSettings,
+        appSettings,
         showToast
     } = useApp();
 
@@ -94,6 +97,33 @@ export default function Admin() {
     return (
         <div className="container" style={{ paddingBottom: '5rem', minHeight: '100vh', color: 'var(--text-primary)' }}>
             <h2 style={{ textAlign: 'center', marginBottom: '1.5rem', color: 'var(--primary)', fontWeight: 'bold' }}>Panel Admin</h2>
+
+            {/* Global Settings */}
+            <div className="card mb-md" style={{ padding: '1rem', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
+                    <WrenchScrewdriverIcon style={{ width: '1.25rem' }} />
+                    <span style={{ fontWeight: 600 }}>Configuración Global</span>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0' }}>
+                    <div>
+                        <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>Modo Mantenimiento</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                            {appSettings?.maintenanceMode
+                                ? 'La app está cerrada para usuarios no administradores'
+                                : 'La app está abierta a todos los usuarios'}
+                        </div>
+                    </div>
+                    <label className="switch">
+                        <input
+                            type="checkbox"
+                            checked={appSettings?.maintenanceMode || false}
+                            onChange={(e) => updateAppSettings({ maintenanceMode: e.target.checked })}
+                        />
+                        <span className="slider round"></span>
+                    </label>
+                </div>
+            </div>
 
             {/* Filters Bar */}
             <div className="card mb-md" style={{ padding: '1rem', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
@@ -363,7 +393,55 @@ export default function Admin() {
                 .btn-icon-white:hover {
                     background: rgba(255, 255, 255, 0.3);
                 }
+                /* Switch styles */
+                .switch {
+                    position: relative;
+                    display: inline-block;
+                    width: 44px;
+                    height: 24px;
+                }
+                .switch input {
+                    opacity: 0;
+                    width: 0;
+                    height: 0;
+                }
+                .slider {
+                    position: absolute;
+                    cursor: pointer;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background-color: var(--border);
+                    transition: .4s;
+                }
+                .slider:before {
+                    position: absolute;
+                    content: "";
+                    height: 18px;
+                    width: 18px;
+                    left: 3px;
+                    bottom: 3px;
+                    background-color: white;
+                    transition: .4s;
+                }
+                input:checked + .slider {
+                    background-color: var(--primary);
+                }
+                input:focus + .slider {
+                    box-shadow: 0 0 1px var(--primary);
+                }
+                input:checked + .slider:before {
+                    transform: translateX(20px);
+                }
+                .slider.round {
+                    border-radius: 24px;
+                }
+                .slider.round:before {
+                    border-radius: 50%;
+                }
             `}</style>
+
         </div>
     );
 }

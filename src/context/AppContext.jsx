@@ -253,6 +253,16 @@ export const AppProvider = ({ children }) => {
         await updateTransaction(transactionId, { verified: !currentStatus });
     };
 
+    const updateAppSettings = async (updates) => {
+        try {
+            await updateDoc(doc(db, "app_settings", "global"), updates);
+            showToast('Ajustes actualizados');
+        } catch (error) {
+            showToast(`Error al actualizar ajustes: ${error.message}`);
+        }
+    };
+
+
     const value = {
         members,
         catalog,
@@ -273,7 +283,8 @@ export const AppProvider = ({ children }) => {
         showToast,
         deleteTransaction,
         updateTransaction,
-        toggleVerification
+        toggleVerification,
+        updateAppSettings
     }; return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
