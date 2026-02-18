@@ -9,7 +9,9 @@ import {
     FunnelIcon,
     MagnifyingGlassIcon,
     ExclamationTriangleIcon,
-    WrenchScrewdriverIcon
+    WrenchScrewdriverIcon,
+    ArrowUpTrayIcon,
+    TableCellsIcon
 } from '@heroicons/react/24/outline';
 
 export default function Admin() {
@@ -31,6 +33,8 @@ export default function Admin() {
     const [selectedIds, setSelectedIds] = useState([]);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(null); // id or 'bulk'
     const [editTx, setEditTx] = useState(null);
+    const [bankMovements, setBankMovements] = useState([]);
+    const [isProcessing, setIsProcessing] = useState(false);
 
     // Filtering logic
     const filtered = transactions.filter(t => {
@@ -105,6 +109,121 @@ export default function Admin() {
         setEditTx(null);
     };
 
+    const handleFileUpload = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setIsProcessing(true);
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const text = event.target.result;
+            // Simple CSV parser for Revolut (Type,Product,Started Date,Completed Date,Description,Amount,Fee,Currency,State,Balance)
+            const lines = text.split('\n');
+            const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+
+            // Expected Revolut Headers (Supporting Spanish and English)
+            const idIdx = headers.findIndex(h => h.toLowerCase() === 'id' || h.toLowerCase() === 'reference');
+            const descIdx = headers.findIndex(h => h.toLowerCase().includes('descrip'));
+            const amountIdx = headers.findIndex(h => h.toLowerCase().includes('import') || h.toLowerCase().includes('amount'));
+            const dateIdx = headers.findIndex(h => h.toLowerCase().includes('finalizaci') || h.toLowerCase().includes('completed date'));
+            const balanceIdx = headers.findIndex(h => h.toLowerCase().includes('saldo') || h.toLowerCase().includes('balance'));
+
+            const newMovements = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                const columns = lines[i].split(',').map(c => c.trim().replace(/"/g, ''));
+
+                const desc = columns[descIdx] || '';
+                const amount = Math.abs(parseFloat(columns[amountIdx]));
+                const date = columns[dateIdx] || '';
+                const balance = columns[balanceIdx] || '';
+                const type = parseFloat(columns[amountIdx]) > 0 ? 'IN' : 'OUT';
+
+                // Only process inflows (payments/advances)
+                if (type !== 'IN' || isNaN(amount)) continue;
+
+                // Create a 100% unique surrogate ID using Date + Amount + Closing Balance (Saldo)
+                let bankId;
+                if (idIdx !== -1 && columns[idIdx]) {
+                    bankId = columns[idIdx];
+                } else {
+                    const rawId = `${date}_${amount}_${balance}`;
+                    // Use the full string to avoid any theoretical collision risk
+                    bankId = `bank_${btoa(unescape(encodeURIComponent(rawId)))}`;
+                }
+
+                // Check if already in Firebase
+                const exists = transactions.some(t => t.bankId === bankId);
+                if (exists) continue;
+
+                // Matching logic
+                const candidates = transactions.filter(t =>
+                    !t.verified &&
+                    Math.abs(t.amount - amount) < 0.01 &&
+                    (t.type === 'PAYMENT' || t.type === 'ADVANCE')
+                );
+
+                // Try to refine by member name in description
+                let matchedTx = null;
+                if (candidates.length > 0) {
+                    matchedTx = candidates.find(t => {
+                        const member = members.find(m => m.id === t.memberId);
+                        const namesToMatch = [member?.name, member?.alias].filter(Boolean);
+                        return namesToMatch.some(name =>
+                            desc.toLowerCase().includes(name.toLowerCase())
+                        );
+                    });
+
+                    // If still no name match, but only 1 candidate of that amount, we can tentatively match
+                    // but it's safer to only auto-pair if name is found or there's only 1 unverified tx total for that amount
+                    if (!matchedTx && candidates.length === 1) {
+                        matchedTx = candidates[0];
+                    }
+                }
+
+                newMovements.push({
+                    bankId,
+                    amount,
+                    description: desc,
+                    date,
+                    matchedId: matchedTx?.id || null,
+                    matchedMember: matchedTx ? members.find(m => m.id === matchedTx.memberId)?.name : null,
+                    confidence: matchedTx ? (desc.toLowerCase().includes((members.find(m => m.id === matchedTx.memberId)?.name || '').toLowerCase()) ? 'high' : 'medium') : 'none'
+                });
+            }
+
+            setBankMovements(newMovements);
+            setIsProcessing(false);
+            if (newMovements.length === 0) {
+                showToast('No se encontraron transacciones nuevas para conciliar');
+            }
+        };
+        reader.readAsText(file);
+    };
+
+    const verifyMatched = async (move) => {
+        if (!move.matchedId) return;
+        await updateTransaction(move.matchedId, {
+            verified: true,
+            bankId: move.bankId
+        });
+        setBankMovements(prev => prev.filter(m => m.bankId !== move.bankId));
+        showToast('Transacción verificada y vinculada');
+    };
+
+    const verifyAllMatches = async () => {
+        const matches = bankMovements.filter(m => m.matchedId && m.confidence === 'high');
+        for (const m of matches) {
+            await updateTransaction(m.matchedId, {
+                verified: true,
+                bankId: m.bankId
+            });
+        }
+        setBankMovements(prev => prev.filter(m => !(m.matchedId && m.confidence === 'high')));
+        showToast(`${matches.length} transacciones verificadas con alta confianza`);
+    };
+
     return (
         <div className="container" style={{ paddingBottom: '7rem', minHeight: '100vh', color: 'var(--text-primary)' }}>
             <h2 style={{ textAlign: 'center', marginBottom: '1.5rem', color: 'var(--primary)', fontWeight: 'bold' }}>Panel Admin</h2>
@@ -134,6 +253,111 @@ export default function Admin() {
                         <span className="maintenance-slider round"></span>
                     </label>
                 </div>
+            </div>
+
+            {/* Bank Reconciliation Section */}
+            <div className="card mb-md" style={{ padding: '1rem', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
+                        <TableCellsIcon style={{ width: '1.25rem' }} />
+                        <span style={{ fontWeight: 600 }}>Conciliación Bancaria</span>
+                    </div>
+                    {bankMovements.length > 0 && (
+                        <button
+                            onClick={() => setBankMovements([])}
+                            style={{ fontSize: '0.75rem', color: 'var(--primary)', background: 'none', border: 'none', fontWeight: 600, cursor: 'pointer' }}
+                        >
+                            Limpiar
+                        </button>
+                    )}
+                </div>
+
+                {bankMovements.length === 0 ? (
+                    <div className="file-upload-zone">
+                        <input
+                            type="file"
+                            accept=".csv"
+                            onChange={handleFileUpload}
+                            id="bank-file-upload"
+                            style={{ display: 'none' }}
+                        />
+                        <label htmlFor="bank-file-upload" style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            cursor: 'pointer',
+                            padding: '1.5rem',
+                            border: '1px dashed var(--border)',
+                            borderRadius: '1rem',
+                            transition: 'background 0.2s'
+                        }}>
+                            <ArrowUpTrayIcon style={{ width: '2rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }} />
+                            <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>Subir Extracto Revolut (.csv)</span>
+                            <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>Solo se procesarán movimientos nuevos</span>
+                        </label>
+                    </div>
+                ) : (
+                    <div className="flex flex-col gap-sm">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                {bankMovements.length} movimientos nuevos encontrados
+                            </span>
+                            <button
+                                onClick={verifyAllMatches}
+                                className="btn btn-primary"
+                                style={{ fontSize: '0.7rem', padding: '0.4rem 0.8rem' }}
+                                disabled={bankMovements.filter(m => m.matchedId && m.confidence === 'high').length === 0}
+                            >
+                                Verificar Automáticos ({bankMovements.filter(m => m.matchedId && m.confidence === 'high').length})
+                            </button>
+                        </div>
+
+                        {bankMovements.map(move => (
+                            <div key={move.bankId} className="reconciliation-card">
+                                {/* Left Side: Bank Record */}
+                                <div className="recon-side bank">
+                                    <div className="recon-badge bank">BANCO</div>
+                                    <div className="recon-date">{move.date?.split(' ')[0]}</div>
+                                    <div className="recon-desc">{move.description}</div>
+                                    <div className="recon-amount">{move.amount.toFixed(2)}€</div>
+                                </div>
+
+                                {/* Divider with Icon */}
+                                <div className="recon-divider">
+                                    {move.confidence === 'high' ? (
+                                        <CheckCircleIcon className="recon-status-icon high" />
+                                    ) : move.confidence === 'medium' ? (
+                                        <ExclamationTriangleIcon className="recon-status-icon medium" />
+                                    ) : (
+                                        <XCircleIcon className="recon-status-icon none" />
+                                    )}
+                                </div>
+
+                                {/* Right Side: App Match */}
+                                <div className={`recon-side app ${move.confidence}`}>
+                                    <div className="recon-badge app">APP</div>
+                                    {move.matchedId ? (
+                                        <>
+                                            <div className="recon-match-name">{move.matchedMember}</div>
+                                            <div className="recon-match-info">Detectado por importe</div>
+                                            <button
+                                                onClick={() => verifyMatched(move)}
+                                                className="btn-verify-recon"
+                                            >
+                                                Confirmar
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <div className="recon-no-match">
+                                            <span>Sin coincidencia</span>
+                                            <div style={{ fontSize: '0.65rem', opacity: 0.7, marginTop: '0.25rem' }}>Nadie registró este importe</div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* Filters Bar */}
@@ -239,6 +463,7 @@ export default function Admin() {
                             <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                     <span style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{t.transactionId || 'N/A'}</span>
+                                    {t.bankId && <TableCellsIcon style={{ width: '1rem', color: 'var(--primary)', opacity: 0.7 }} title={`Vinculado a banco: ${t.bankId}`} />}
                                     {t.verified ? <CheckCircleIcon style={{ width: '1rem', color: 'var(--success)' }} /> : <XCircleIcon style={{ width: '1rem', color: 'var(--danger)' }} />}
                                     <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{dateStr}</span>
                                 </div>
@@ -532,6 +757,25 @@ export default function Admin() {
                 @keyframes slideUp {
                     from { transform: translateY(100%); opacity: 0; }
                     to { transform: translateY(0); opacity: 1; }
+                }
+
+                .btn-verify-match {
+                    background: var(--success);
+                    color: white;
+                    border: none;
+                    padding: 0.25rem 0.5rem;
+                    border-radius: 0.4rem;
+                    font-size: 0.7rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: opacity 0.2s;
+                }
+                .btn-verify-match:hover {
+                    opacity: 0.8;
+                }
+                .file-upload-zone label:hover {
+                    background: rgba(255, 255, 255, 0.02);
+                    border-color: var(--primary);
                 }
             `}</style>
 
