@@ -169,7 +169,7 @@ export default function Admin() {
                 if (candidates.length > 0) {
                     matchedTx = candidates.find(t => {
                         const member = members.find(m => m.id === t.memberId);
-                        const namesToMatch = [member?.name, member?.alias].filter(Boolean);
+                        const namesToMatch = [member?.name, member?.bizum].filter(Boolean);
                         return namesToMatch.some(name =>
                             desc.toLowerCase().includes(name.toLowerCase())
                         );
@@ -189,7 +189,11 @@ export default function Admin() {
                     date,
                     matchedId: matchedTx?.id || null,
                     matchedMember: matchedTx ? members.find(m => m.id === matchedTx.memberId)?.name : null,
-                    confidence: matchedTx ? (desc.toLowerCase().includes((members.find(m => m.id === matchedTx.memberId)?.name || '').toLowerCase()) ? 'high' : 'medium') : 'none'
+                    confidence: matchedTx ? (() => {
+                        const m = members.find(mem => mem.id === matchedTx.memberId);
+                        const matchTerm = m?.bizum || m?.name || '';
+                        return desc.toLowerCase().includes(matchTerm.toLowerCase()) ? 'high' : 'medium';
+                    })() : 'none'
                 });
             }
 
