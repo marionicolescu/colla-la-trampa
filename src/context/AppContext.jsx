@@ -150,10 +150,9 @@ export const AppProvider = ({ children }) => {
             const amount = Number(t.amount) || 0;
             if (Number(t.memberId) === targetId) {
                 if (t.type === 'CONSUMPTION') balance -= amount;
-                if (t.type === 'PAYMENT') balance += amount;
-                if (t.type === 'PURCHASE_BOTE') balance += amount;
-                // Only count ADVANCE if verified
+                if (t.type === 'PAYMENT' && t.verified === true) balance += amount;
                 if (t.type === 'ADVANCE' && t.verified === true) balance += amount;
+                // PURCHASE_BOTE is ignored for member balance (it's a group expense)
             }
         });
         return balance;
@@ -163,11 +162,12 @@ export const AppProvider = ({ children }) => {
         let pot = 0;
         transactions.forEach(t => {
             const amount = Number(t.amount) || 0;
-            // Only count PAYMENT if verified
-            if (t.type === 'PAYMENT' && t.verified === true) pot += amount;
+            // Both PAYMENT and ADVANCE count as cash entering the pot if verified
+            if ((t.type === 'PAYMENT' || t.type === 'ADVANCE') && t.verified === true) {
+                pot += amount;
+            }
+            // PURCHASE_BOTE subtracts cash from the pot
             if (t.type === 'PURCHASE_BOTE') pot -= amount;
-            // Only count ADVANCE in the pot if verified
-            if (t.type === 'ADVANCE' && t.verified === true) pot += amount;
         });
         return pot;
     };
