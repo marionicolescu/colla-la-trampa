@@ -138,7 +138,7 @@ export default function Statistics() {
         };
         const fmtFull = (d) => d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
 
-        if (rangeType === 'TOTAL') return 'Histórico (Total)';
+        if (rangeType === 'TOTAL') return 'Todo el historial';
         if (rangeType === 'MONTH') {
             const monthName = now.toLocaleDateString('es-ES', { month: 'long' });
             return `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${now.getFullYear()}`;
@@ -201,21 +201,22 @@ export default function Statistics() {
                 </div>
             </div>
 
-            {/* Range Header Pill */}
-            <div className="flex justify-center mb-md">
+            {/* Refined Range Header */}
+            <div className="flex justify-center mb-md animated fadeIn">
                 <div style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.5rem',
-                    backgroundColor: 'var(--bg-surface)',
-                    padding: '0.4rem 0.875rem',
+                    gap: '0.375rem',
+                    padding: '0.25rem 0.75rem',
                     borderRadius: '2rem',
-                    fontSize: '0.8125rem',
+                    fontSize: '0.75rem',
                     color: 'var(--text-secondary)',
-                    fontWeight: 600,
-                    border: '1px solid var(--border)'
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    backgroundColor: 'rgba(255,255,255,0.03)'
                 }}>
-                    <CalendarIcon style={{ width: '0.875rem', height: '0.875rem' }} />
+                    <CalendarIcon style={{ width: '0.8rem', height: '0.8rem', opacity: 0.8 }} />
                     <span>{rangeHeader}</span>
                 </div>
             </div>
