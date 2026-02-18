@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import Modal from '../components/Modal';
 import {
@@ -31,6 +31,7 @@ export default function Home() {
     const [selectedMember, setSelectedMember] = useState(null);
     const [pendingMember, setPendingMember] = useState(null);
     const [showSettleConfirm, setShowSettleConfirm] = useState(false);
+    const [showPotHistory, setShowPotHistory] = useState(false);
     const [secondsLeft, setSecondsLeft] = useState(0);
 
     useEffect(() => {
@@ -49,6 +50,28 @@ export default function Home() {
     const myBalance = getMemberBalance(currentUser.id);
     const systemPending = getSystemPendingBalance();
     const totalDebt = getSystemTotalDebt();
+
+    const potHistory = useMemo(() => {
+        const filtered = transactions
+            .filter(t =>
+                t.type === 'PURCHASE_BOTE' ||
+                ((t.type === 'PAYMENT' || t.type === 'ADVANCE') && t.verified === true)
+            )
+            .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+        let currentBalance = 0;
+        const withBalance = filtered.map(t => {
+            const amount = Number(t.amount) || 0;
+            if (t.type === 'PURCHASE_BOTE') {
+                currentBalance -= amount;
+            } else {
+                currentBalance += amount;
+            }
+            return { ...t, runningBalance: currentBalance };
+        });
+
+        return withBalance.reverse();
+    }, [transactions]);
 
     const handleSettle = () => {
         addTransaction({
@@ -133,18 +156,30 @@ export default function Home() {
             )}
 
             {/* Bote Card */}
-            <div style={{
-                backgroundColor: 'var(--primary)',
-                color: 'white',
-                padding: '2rem',
-                borderRadius: '1rem',
-                textAlign: 'center',
-                marginBottom: '1rem',
-                boxShadow: 'var(--shadow-lg)'
-            }}>
-                <div style={{ fontSize: '0.875rem', opacity: 0.9, textTransform: 'uppercase' }}>Bote</div>
+            <div
+                onClick={() => setShowPotHistory(true)}
+                style={{
+                    backgroundColor: 'var(--primary)',
+                    color: 'white',
+                    padding: '2rem',
+                    borderRadius: '1rem',
+                    textAlign: 'center',
+                    marginBottom: '1rem',
+                    boxShadow: 'var(--shadow-lg)',
+                    cursor: 'pointer',
+                    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 12px 24px rgba(236, 43, 120, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'var(--shadow-lg)';
+                }}
+            >
+                <div style={{ fontSize: '1.1rem', fontWeight: 800, opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Bote</div>
                 <div style={{ fontSize: '3rem', fontWeight: 'bold' }}>{fmt(potBalance)}</div>
-                <div style={{ fontSize: '0.875rem', opacity: 0.9 }}>Dinero en efectivo</div>
             </div>
 
             {/* Pending Stats Row */}
@@ -397,6 +432,70 @@ export default function Home() {
                     </div>
                 </Modal>
             )}
+
+            {/* Pot History Modal */}
+            <Modal
+                isOpen={showPotHistory}
+                onClose={() => setShowPotHistory(false)}
+                title="Historial del Bote"
+            >
+                <div style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Saldo en Bote</div>
+                    <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--primary)' }}>
+                        {fmt(potBalance)}
+                    </div>
+                </div>
+
+                <div className="flex flex-col gap-sm">
+                    {potHistory.map(t => {
+                        const { icon, label, sign, color } = getTxDetails(t);
+                        const member = members.find(m => m.id === t.memberId);
+                        const date = new Date(t.timestamp);
+
+                        // For pot history, if it's a payment/advance, show who paid it
+                        const displayLabel = (t.type === 'PAYMENT' || t.type === 'ADVANCE')
+                            ? `${member?.name}: ${label}`
+                            : (t.description || label);
+
+                        return (
+                            <div key={t.id} style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.75rem',
+                                padding: '1rem 0.75rem',
+                                borderBottom: '1px solid var(--border)'
+                            }}>
+                                <div style={{
+                                    backgroundColor: 'var(--bg-app)',
+                                    padding: '0.5rem',
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    border: '1px solid var(--border)'
+                                }}>{icon}</div>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ fontWeight: 600, fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayLabel}</div>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                        {date.toLocaleDateString()} {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </div>
+                                </div>
+                                <div style={{ textAlign: 'right' }}>
+                                    <div className={color} style={{ fontWeight: 700, fontSize: '1rem' }}>
+                                        {sign}{fmt(t.amount)}
+                                    </div>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 500, marginTop: '2px' }}>
+                                        Saldo: {fmt(t.runningBalance)}
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                    {potHistory.length === 0 && (
+                        <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '1rem' }}>
+                            Sin movimientos en el bote
+                        </div>
+                    )}
+                </div>
+            </Modal>
         </div>
     );
 }
