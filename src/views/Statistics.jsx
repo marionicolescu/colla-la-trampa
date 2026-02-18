@@ -173,34 +173,28 @@ export default function Statistics() {
         <div className="container" style={{ paddingBottom: '2rem' }}>
             <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>Estadísticas</h2>
 
-            {/* Range Presets */}
-            <div className="flex gap-sm mb-md" style={{ overflowX: 'auto', paddingBottom: '0.5rem' }}>
+            {/* Modern Time Picker Bar */}
+            <div className="time-picker-bar">
                 {[
-                    { id: 'TOTAL', label: 'Histórico (Total)' },
-                    { id: 'MONTH', label: 'Mes actual' },
-                    { id: 'WEEK', label: 'Semana actual' },
-                    { id: 'CUSTOM', label: 'Personalizado' }
+                    { id: 'TOTAL', label: 'Total' },
+                    { id: 'MONTH', label: 'Mes' },
+                    { id: 'WEEK', label: 'Semana' },
+                    { id: 'CUSTOM', label: 'Rango' }
                 ].map(r => (
                     <button
                         key={r.id}
                         onClick={() => setRangeType(r.id)}
-                        style={{
-                            padding: '0.5rem 1rem',
-                            borderRadius: '999px',
-                            border: 'none',
-                            backgroundColor: rangeType === r.id ? 'var(--primary)' : 'var(--bg-surface)',
-                            color: rangeType === r.id ? 'white' : 'var(--text-secondary)',
-                            fontWeight: 600,
-                            fontSize: '0.8125rem',
-                            whiteSpace: 'nowrap',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s',
-                            border: '1px solid var(--border)'
-                        }}
+                        className={`time-picker-item ${rangeType === r.id ? 'active' : ''}`}
                     >
                         {r.label}
                     </button>
                 ))}
+                <div
+                    className="time-picker-highlight"
+                    style={{
+                        left: `${['TOTAL', 'MONTH', 'WEEK', 'CUSTOM'].indexOf(rangeType) * 25}%`
+                    }}
+                />
             </div>
 
             {/* Range Header Pill */}
@@ -223,30 +217,26 @@ export default function Statistics() {
             </div>
 
             {rangeType === 'CUSTOM' && (
-                <div className="flex gap-sm mb-md animated fadeIn">
-                    <div style={{
-                        flex: 1,
-                        backgroundColor: 'var(--bg-surface)',
-                        padding: '0.75rem',
-                        borderRadius: '1rem',
-                        border: '1px solid var(--border)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.25rem'
-                    }}>
-                        <span style={{ fontSize: '0.625rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Desde/Hasta</span>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div className="custom-range-card animated fadeIn">
+                    <div className="flex items-center gap-sm mb-sm">
+                        <CalendarIcon style={{ width: '1rem', color: 'var(--primary)' }} />
+                        <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Seleccionar periodo</span>
+                    </div>
+                    <div className="flex gap-md">
+                        <div className="date-input-group">
+                            <label>Desde</label>
                             <input
                                 type="date"
                                 value={customDates.start}
                                 onChange={e => setCustomDates(prev => ({ ...prev, start: e.target.value }))}
-                                style={{ border: 'none', background: 'none', fontSize: '0.875rem', color: 'var(--text-primary)', padding: 0, outline: 'none', width: '100%' }}
                             />
+                        </div>
+                        <div className="date-input-group">
+                            <label>Hasta</label>
                             <input
                                 type="date"
                                 value={customDates.end}
                                 onChange={e => setCustomDates(prev => ({ ...prev, end: e.target.value }))}
-                                style={{ border: 'none', background: 'none', fontSize: '0.875rem', color: 'var(--text-primary)', padding: 0, outline: 'none', width: '100%' }}
                             />
                         </div>
                     </div>
@@ -387,6 +377,90 @@ export default function Statistics() {
                     </div>
                 </div>
             )}
+            <style>{`
+                .time-picker-bar {
+                    display: flex;
+                    position: relative;
+                    background: rgba(255, 255, 255, 0.03);
+                    border: 1px solid var(--border);
+                    border-radius: 2rem;
+                    padding: 0.25rem;
+                    margin-bottom: 2rem;
+                    isolation: isolate;
+                }
+                .time-picker-item {
+                    flex: 1;
+                    padding: 0.6rem 0;
+                    border: none;
+                    background: none;
+                    color: var(--text-secondary);
+                    font-size: 0.8125rem;
+                    font-weight: 700;
+                    cursor: pointer;
+                    z-index: 2;
+                    transition: color 0.3s;
+                }
+                .time-picker-item.active {
+                    color: white;
+                }
+                .time-picker-highlight {
+                    position: absolute;
+                    top: 0.25rem;
+                    bottom: 0.25rem;
+                    width: calc(25% - 0.25rem);
+                    background: var(--primary);
+                    border-radius: 2rem;
+                    z-index: 1;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    box-shadow: 0 4px 15px rgba(236, 43, 120, 0.3);
+                }
+                .custom-range-card {
+                    background: var(--bg-surface);
+                    border: 1px solid var(--border);
+                    padding: 1.25rem;
+                    border-radius: 1.25rem;
+                    margin-bottom: 2rem;
+                    box-shadow: var(--shadow-sm);
+                }
+                .date-input-group {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.375rem;
+                }
+                .date-input-group label {
+                    font-size: 0.65rem;
+                    font-weight: 800;
+                    text-transform: uppercase;
+                    color: var(--text-secondary);
+                    letter-spacing: 0.05em;
+                }
+                .date-input-group input {
+                    background: rgba(255,255,255,0.03);
+                    border: 1px solid var(--border);
+                    padding: 0.75rem;
+                    border-radius: 0.75rem;
+                    color: var(--text-primary);
+                    font-size: 0.9rem;
+                    font-family: inherit;
+                    outline: none;
+                    width: 100%;
+                }
+                .date-input-group input:focus {
+                    border-color: var(--primary);
+                }
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .animated {
+                    animation-duration: 0.4s;
+                    animation-fill-mode: both;
+                }
+                .fadeIn {
+                    animation-name: fadeIn;
+                }
+            `}</style>
         </div>
     );
 }

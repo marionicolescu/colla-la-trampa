@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { ArrowUpIcon, ArrowDownIcon, ShoppingCartIcon, CurrencyEuroIcon } from '@heroicons/react/24/outline'; // Adjust icons
+import {
+    ArrowUpIcon,
+    ArrowDownIcon,
+    ShoppingCartIcon,
+    CurrencyEuroIcon,
+    ListBulletIcon,
+    FunnelIcon
+} from '@heroicons/react/24/outline';
 
 export default function History() {
     const { transactions, members, showToast } = useApp();
@@ -63,33 +70,32 @@ export default function History() {
         <div className="container" style={{ minHeight: '100vh' }}>
             <h2 style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--text-primary)' }}>Historial</h2>
 
-            {/* Filters */}
-            <div className="flex gap-sm mb-md" style={{ overflowX: 'auto', paddingBottom: '0.5rem' }}>
-                {[
-                    { id: 'ALL', label: 'Todos' },
-                    { id: 'CONSUMPTION', label: 'Consumos' },
-                    { id: 'PAYMENT', label: 'Pagos' },
-                    { id: 'PURCHASE', label: 'Compras' }
-                ].map(f => (
-                    <button
-                        key={f.id}
-                        onClick={() => setFilter(f.id)}
+            {/* Modern Segmented Filter */}
+            <div className="segmented-control-wrapper">
+                <div className="segmented-control">
+                    {[
+                        { id: 'ALL', label: 'Todos', icon: <ListBulletIcon /> },
+                        { id: 'CONSUMPTION', label: 'Consumos', icon: <ArrowUpIcon /> },
+                        { id: 'PAYMENT', label: 'Pagos', icon: <ArrowDownIcon /> },
+                        { id: 'PURCHASE', label: 'Compras', icon: <ShoppingCartIcon /> }
+                    ].map(f => (
+                        <button
+                            key={f.id}
+                            onClick={() => setFilter(f.id)}
+                            className={`segmented-item ${filter === f.id ? 'active' : ''}`}
+                        >
+                            <span className="segmented-icon">{f.icon}</span>
+                            <span className="segmented-label">{f.label}</span>
+                        </button>
+                    ))}
+                    {/* Sliding background */}
+                    <div
+                        className="segmented-highlight"
                         style={{
-                            padding: '0.5rem 1rem',
-                            borderRadius: '999px',
-                            border: '1px solid var(--border)',
-                            backgroundColor: filter === f.id ? 'var(--primary)' : 'var(--bg-surface)',
-                            color: filter === f.id ? 'white' : 'var(--text-secondary)',
-                            fontWeight: 600,
-                            fontSize: '0.8125rem',
-                            whiteSpace: 'nowrap',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s'
+                            left: `${['ALL', 'CONSUMPTION', 'PAYMENT', 'PURCHASE'].indexOf(filter) * 25}%`
                         }}
-                    >
-                        {f.label}
-                    </button>
-                ))}
+                    />
+                </div>
             </div>
 
             <div className="flex flex-col gap-sm">
@@ -181,6 +187,72 @@ export default function History() {
                 })}
                 {sorted.length === 0 && <div style={{ textAlign: 'center', color: 'var(--text-secondary)', marginTop: '2rem' }}>No hay movimientos</div>}
             </div>
+            <style>{`
+                .segmented-control-wrapper {
+                    margin-bottom: 2rem;
+                    padding: 0 0.25rem;
+                }
+                .segmented-control {
+                    display: flex;
+                    position: relative;
+                    background: rgba(255, 255, 255, 0.03);
+                    border: 1px solid var(--border);
+                    border-radius: 1rem;
+                    padding: 0.25rem;
+                    width: 100%;
+                    isolation: isolate;
+                }
+                .segmented-item {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.25rem;
+                    padding: 0.5rem 0;
+                    border: none;
+                    background: none;
+                    color: var(--text-secondary);
+                    font-size: 0.65rem;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.025em;
+                    cursor: pointer;
+                    transition: color 0.3s;
+                    z-index: 2;
+                }
+                .segmented-item.active {
+                    color: white;
+                }
+                .segmented-icon {
+                    width: 1.25rem;
+                    height: 1.25rem;
+                    opacity: 0.7;
+                    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+                }
+                .segmented-item.active .segmented-icon {
+                    opacity: 1;
+                    transform: scale(1.1);
+                }
+                .segmented-highlight {
+                    position: absolute;
+                    top: 0.25rem;
+                    bottom: 0.25rem;
+                    width: calc(25% - 0.25rem);
+                    background: var(--primary);
+                    border-radius: 0.8rem;
+                    z-index: 1;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    box-shadow: 0 4px 12px rgba(236, 43, 120, 0.3);
+                }
+                .history-card {
+                    transition: all 0.2s;
+                }
+                .history-card:active {
+                    transform: scale(0.98);
+                    background-color: rgba(255,255,255,0.02);
+                }
+            `}</style>
         </div>
     );
 }

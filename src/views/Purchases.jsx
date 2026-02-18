@@ -140,7 +140,7 @@ export default function Purchases() {
                         type="text"
                         value={note}
                         onChange={e => setNote(e.target.value)}
-                        placeholder={activeTab === 'PURCHASE_BOTE' ? "ej. Hielo y carbón..." : "ej. Dinero para el mes..."}
+                        placeholder={activeTab === 'PURCHASE_BOTE' ? "ej. Compra Alcohol Mercadona..." : "ej. Adelanto Magdalena..."}
                         style={{
                             background: 'none',
                             border: 'none',
