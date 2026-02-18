@@ -7,7 +7,8 @@ import {
     UserIcon,
     PencilSquareIcon,
     PlusCircleIcon,
-    UserPlusIcon
+    UserPlusIcon,
+    WalletIcon
 } from '@heroicons/react/24/outline';
 
 export default function Purchases() {
@@ -124,7 +125,7 @@ export default function Purchases() {
                         className={`type-card ${activeTab === 'ADVANCE' ? 'active blue' : ''}`}
                     >
                         <div className="type-icon-wrapper">
-                            <UserPlusIcon style={{ width: '1.5rem' }} />
+                            <WalletIcon style={{ width: '1.5rem' }} />
                         </div>
                         <div style={{ fontWeight: 700 }}>Anticipo</div>
                         <div style={{ fontSize: '0.7rem', opacity: 0.7 }}>Yo pago</div>

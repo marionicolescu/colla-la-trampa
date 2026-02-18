@@ -1,27 +1,25 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import {
-    ArrowUpIcon,
-    ArrowDownIcon,
     ShoppingCartIcon,
-    CurrencyEuroIcon,
     ListBulletIcon,
-    FunnelIcon
+    BeakerIcon,
+    BanknotesIcon,
+    WalletIcon
 } from '@heroicons/react/24/outline';
 
 export default function History() {
     const { transactions, members, showToast } = useApp();
-    const [filter, setFilter] = useState('ALL'); // ALL,  CONSUMPTION, PAYMENT, PURCHASE_BOTE
+    const [filter, setFilter] = useState('ALL'); // ALL, CONSUMPTION, PAYMENT, PURCHASE_BOTE
 
     const filtered = transactions.filter(t => {
         if (filter === 'ALL') return true;
         if (filter === 'CONSUMPTION') return t.type === 'CONSUMPTION';
-        if (filter === 'PAYMENT') return t.type === 'PAYMENT' || t.type === 'ADVANCE'; // Group 'Pagos' and 'Anticipos'? Screenshot says "Pagos".
+        if (filter === 'PAYMENT') return t.type === 'PAYMENT' || t.type === 'ADVANCE';
         if (filter === 'PURCHASE') return t.type === 'PURCHASE_BOTE';
         return true;
     });
 
-    // Sort by date desc
     const sorted = [...filtered].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
     const getDetails = (t) => {
@@ -32,24 +30,24 @@ export default function History() {
             case 'CONSUMPTION':
                 return {
                     title: `${memberName} - Consumo`,
-                    icon: <ArrowUpIcon style={{ width: '1.5rem', color: 'var(--danger)' }} />,
+                    icon: <BeakerIcon style={{ width: '1.5rem', color: 'var(--danger)' }} />,
                     amountClass: 'text-danger',
                     amountSign: '-',
-                    borderColor: 'var(--danger)' // Red stripe
+                    borderColor: 'var(--danger)'
                 };
             case 'PAYMENT':
                 return {
                     title: `${memberName} - Pago`,
-                    icon: <ArrowDownIcon style={{ width: '1.5rem', color: 'var(--success)' }} />,
+                    icon: <BanknotesIcon style={{ width: '1.5rem', color: 'var(--success)' }} />,
                     amountClass: 'text-success',
                     amountSign: '+',
-                    borderColor: 'var(--success)' // Green stripe
+                    borderColor: 'var(--success)'
                 };
             case 'ADVANCE':
                 return {
                     title: `${memberName} - Anticipo`,
-                    icon: <CurrencyEuroIcon style={{ width: '1.5rem', color: '#9333EA' }} />, // Purple
-                    amountClass: 'text-primary', // or purple? Screenshot has purple +40
+                    icon: <WalletIcon style={{ width: '1.5rem', color: '#9333EA' }} />,
+                    amountClass: 'text-primary',
                     amountSign: '+',
                     borderColor: '#9333EA'
                 };
@@ -58,7 +56,7 @@ export default function History() {
                     title: 'Compra del bote',
                     icon: <ShoppingCartIcon style={{ width: '1.5rem', color: '#2563EB' }} />,
                     amountSign: '-',
-                    amountClass: '', // Default color
+                    amountClass: '',
                     borderColor: '#2563EB'
                 };
             default:
@@ -70,13 +68,12 @@ export default function History() {
         <div className="container" style={{ minHeight: '100vh' }}>
             <h2 style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--text-primary)' }}>Historial</h2>
 
-            {/* Modern Segmented Filter */}
             <div className="segmented-control-wrapper">
                 <div className="segmented-control">
                     {[
                         { id: 'ALL', label: 'Todos', icon: <ListBulletIcon /> },
-                        { id: 'CONSUMPTION', label: 'Consumos', icon: <ArrowUpIcon /> },
-                        { id: 'PAYMENT', label: 'Pagos', icon: <ArrowDownIcon /> },
+                        { id: 'CONSUMPTION', label: 'Consumos', icon: <BeakerIcon /> },
+                        { id: 'PAYMENT', label: 'Pagos', icon: <BanknotesIcon /> },
                         { id: 'PURCHASE', label: 'Compras', icon: <ShoppingCartIcon /> }
                     ].map(f => (
                         <button
@@ -88,7 +85,6 @@ export default function History() {
                             <span className="segmented-label">{f.label}</span>
                         </button>
                     ))}
-                    {/* Sliding background */}
                     <div
                         className="segmented-highlight"
                         style={{
@@ -113,7 +109,6 @@ export default function History() {
                             borderLeftWidth: '4px',
                             position: 'relative'
                         }}>
-                            {/* Transaction ID and verification status in top-right corner */}
                             <div style={{
                                 position: 'absolute',
                                 top: '0.4rem',
@@ -123,7 +118,6 @@ export default function History() {
                                 gap: '0.25rem',
                                 zIndex: 1
                             }}>
-                                {/* Verification status indicator */}
                                 {t.verified !== undefined && (
                                     <div style={{
                                         fontSize: '0.75rem',
@@ -139,14 +133,12 @@ export default function History() {
                                     </div>
                                 )}
 
-                                {/* Transaction ID */}
                                 {t.transactionId && (
                                     <div
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             navigator.clipboard.writeText(t.transactionId);
                                             showToast('ID copiado: ' + t.transactionId);
-                                            // Simple feedback for mobile touch
                                             e.currentTarget.style.backgroundColor = 'rgba(156, 163, 175, 0.3)';
                                             setTimeout(() => {
                                                 if (e.currentTarget) e.currentTarget.style.backgroundColor = 'rgba(156, 163, 175, 0.1)';

@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import Modal from '../components/Modal';
-import { ArrowUpIcon, ArrowDownIcon, ShoppingCartIcon, CurrencyEuroIcon, ArrowRightOnRectangleIcon, ClockIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
+import {
+    ShoppingCartIcon,
+    ArrowRightOnRectangleIcon,
+    ClockIcon,
+    ExclamationCircleIcon,
+    BeakerIcon,
+    BanknotesIcon,
+    WalletIcon
+} from '@heroicons/react/24/outline';
 
 export default function Home() {
     const {
@@ -58,9 +66,9 @@ export default function Home() {
     // Helper to get transaction details
     const getTxDetails = (t) => {
         switch (t.type) {
-            case 'CONSUMPTION': return { icon: <ArrowUpIcon style={{ width: '1rem', color: 'var(--danger)' }} />, label: 'Consumo', sign: '-', color: 'text-danger' };
-            case 'PAYMENT': return { icon: <ArrowDownIcon style={{ width: '1rem', color: 'var(--success)' }} />, label: 'Pago', sign: '+', color: 'text-success' };
-            case 'ADVANCE': return { icon: <CurrencyEuroIcon style={{ width: '1rem', color: '#9333EA' }} />, label: 'Anticipo', sign: '+', color: 'text-primary' };
+            case 'CONSUMPTION': return { icon: <BeakerIcon style={{ width: '1rem', color: 'var(--danger)' }} />, label: 'Consumo', sign: '-', color: 'text-danger' };
+            case 'PAYMENT': return { icon: <BanknotesIcon style={{ width: '1rem', color: 'var(--success)' }} />, label: 'Pago', sign: '+', color: 'text-success' };
+            case 'ADVANCE': return { icon: <WalletIcon style={{ width: '1rem', color: '#9333EA' }} />, label: 'Anticipo', sign: '+', color: 'text-primary' };
             case 'PURCHASE_BOTE': return { icon: <ShoppingCartIcon style={{ width: '1rem', color: '#2563EB' }} />, label: 'Compra', sign: '-', color: '' };
             default: return { icon: null, label: t.type, sign: '', color: '' };
         }
@@ -355,7 +363,7 @@ export default function Home() {
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', backgroundColor: 'rgba(245, 158, 11, 0.05)', borderRadius: '0.75rem', border: '1px solid rgba(245, 158, 11, 0.1)' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                                     <div style={{ backgroundColor: '#F59E0B', color: 'white', padding: '0.5rem', borderRadius: '0.5rem' }}>
-                                        <ArrowDownIcon style={{ width: '1.25rem' }} />
+                                        <BanknotesIcon style={{ width: '1.25rem' }} />
                                     </div>
                                     <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Pagos Pendientes</span>
                                 </div>
@@ -369,7 +377,7 @@ export default function Home() {
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', backgroundColor: 'rgba(147, 51, 234, 0.05)', borderRadius: '0.75rem', border: '1px solid rgba(147, 51, 234, 0.1)' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                                     <div style={{ backgroundColor: '#9333EA', color: 'white', padding: '0.5rem', borderRadius: '0.5rem' }}>
-                                        <CurrencyEuroIcon style={{ width: '1.25rem' }} />
+                                        <WalletIcon style={{ width: '1.25rem' }} />
                                     </div>
                                     <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Anticipos Pendientes</span>
                                 </div>
