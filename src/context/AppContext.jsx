@@ -150,8 +150,8 @@ export const AppProvider = ({ children }) => {
             const amount = Number(t.amount) || 0;
             if (Number(t.memberId) === targetId) {
                 if (t.type === 'CONSUMPTION') balance -= amount;
-                if (t.type === 'PAYMENT') balance += amount;
-                if (t.type === 'ADVANCE') balance += amount;
+                if (t.type === 'PAYMENT') balance += amount; // Immediate (settlement)
+                if (t.type === 'ADVANCE' && t.verified === true) balance += amount; // Only if verified
                 // PURCHASE_BOTE is ignored for member balance (it's a group expense)
             }
         });
