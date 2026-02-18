@@ -27,13 +27,6 @@ export default function Purchases() {
         setShowConfirm(true);
     };
 
-    const quickAdd = (val) => {
-        const current = parseFloat(amount || 0);
-        setAmount((current + val).toFixed(2));
-    };
-
-    const clearAmount = () => setAmount('');
-
     const executeTransaction = () => {
         const val = parseFloat(amount);
 
@@ -64,39 +57,50 @@ export default function Purchases() {
         <div className="container" style={{ paddingBottom: '7rem', minHeight: '100vh', color: 'var(--text-primary)' }}>
             <h2 style={{ textAlign: 'center', marginBottom: '2rem', fontWeight: 700 }}>Operaciones</h2>
 
-            {/* Amount Display Card */}
+            {/* Amount Input Card */}
             <div className="card" style={{
                 backgroundColor: 'rgba(236, 43, 120, 0.03)',
                 border: '1px solid var(--border)',
                 borderRadius: '1.5rem',
-                padding: '2rem 1.5rem',
+                padding: '2.5rem 1.5rem',
                 textAlign: 'center',
                 marginBottom: '1.5rem'
             }}>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.1rem', marginBottom: '0.5rem', fontWeight: 700 }}>Importe de la operación</div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                    <div style={{ fontSize: '3.5rem', fontWeight: 800, color: 'var(--text-primary)', outline: 'none' }}>
-                        {amount || '0.00'}<span style={{ color: 'var(--primary)', marginLeft: '0.25rem' }}>€</span>
-                    </div>
-                </div>
+                <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <input
+                        type="number"
+                        inputMode="decimal"
+                        step="0.01"
+                        value={amount}
+                        onChange={e => setAmount(e.target.value)}
+                        placeholder="0.00"
+                        className="massive-amount-input"
+                        autoFocus
+                    />
+                    <span style={{ fontSize: '3rem', fontWeight: 800, color: 'var(--primary)', marginLeft: '0.5rem' }}>€</span>
 
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
-                    {[1, 5, 10, 20].map(val => (
+                    {amount && (
                         <button
-                            key={val}
-                            onClick={() => quickAdd(val)}
-                            className="quick-add-btn"
+                            onClick={() => setAmount('')}
+                            style={{
+                                position: 'absolute',
+                                right: '-2.5rem',
+                                background: 'rgba(255,255,255,0.05)',
+                                border: '1px solid var(--border)',
+                                borderRadius: '50%',
+                                width: '2.2rem',
+                                height: '2.2rem',
+                                color: 'var(--text-secondary)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer'
+                            }}
                         >
-                            +{val}€
+                            <span style={{ fontSize: '1.5rem', lineHeight: 1 }}>×</span>
                         </button>
-                    ))}
-                    <button
-                        onClick={clearAmount}
-                        className="quick-add-btn"
-                        style={{ color: 'var(--danger)', borderColor: 'rgba(220, 38, 38, 0.2)' }}
-                    >
-                        Borrar
-                    </button>
+                    )}
                 </div>
             </div>
 
@@ -205,22 +209,25 @@ export default function Purchases() {
             </Modal>
 
             <style>{`
-                .quick-add-btn {
-                    background: rgba(255, 255, 255, 0.05);
-                    border: 1px solid var(--border);
+                .massive-amount-input {
+                    background: none;
+                    border: none;
                     color: var(--text-primary);
-                    padding: 0.5rem 1rem;
-                    border-radius: 2rem;
-                    font-weight: 600;
-                    font-size: 0.875rem;
-                    cursor: pointer;
-                    transition: all 0.2s;
+                    font-size: 3.5rem;
+                    font-weight: 800;
+                    width: 170px;
+                    text-align: right;
+                    outline: none;
+                    padding: 0;
                 }
-                .quick-add-btn:active {
-                    background: var(--primary);
-                    border-color: var(--primary);
-                    color: white;
-                    transform: scale(0.95);
+                /* Remove Arrows from number input */
+                input::-webkit-outer-spin-button,
+                input::-webkit-inner-spin-button {
+                  -webkit-appearance: none;
+                  margin: 0;
+                }
+                input[type=number] {
+                  -moz-appearance: textfield;
                 }
                 .type-card {
                     background: var(--bg-surface);
