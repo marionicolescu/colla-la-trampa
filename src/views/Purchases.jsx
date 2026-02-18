@@ -77,7 +77,6 @@ export default function Purchases() {
                         onChange={e => setAmount(e.target.value)}
                         placeholder="0.00"
                         className="massive-amount-input"
-                        autoFocus
                     />
                     <span style={{ fontSize: '3rem', fontWeight: 800, color: 'var(--primary)', marginLeft: '0.5rem' }}>€</span>
 
