@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { ChartBarIcon, CalendarIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { ChartBarIcon, CalendarIcon, XMarkIcon, CalendarDaysIcon, AdjustmentsHorizontalIcon, ListBulletIcon } from '@heroicons/react/24/outline';
 
 const CATALOG_ICONS = {
     'Refresco': '🥤',
@@ -173,28 +173,32 @@ export default function Statistics() {
         <div className="container" style={{ paddingBottom: '2rem' }}>
             <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>Estadísticas</h2>
 
-            {/* Modern Time Picker Bar */}
-            <div className="time-picker-bar">
-                {[
-                    { id: 'TOTAL', label: 'Total' },
-                    { id: 'MONTH', label: 'Mes' },
-                    { id: 'WEEK', label: 'Semana' },
-                    { id: 'CUSTOM', label: 'Rango' }
-                ].map(r => (
-                    <button
-                        key={r.id}
-                        onClick={() => setRangeType(r.id)}
-                        className={`time-picker-item ${rangeType === r.id ? 'active' : ''}`}
-                    >
-                        {r.label}
-                    </button>
-                ))}
-                <div
-                    className="time-picker-highlight"
-                    style={{
-                        left: `${['TOTAL', 'MONTH', 'WEEK', 'CUSTOM'].indexOf(rangeType) * 25}%`
-                    }}
-                />
+            {/* Unified Segmented Control for Time Range */}
+            <div className="segmented-control-wrapper">
+                <div className="segmented-control">
+                    {[
+                        { id: 'TOTAL', label: 'Total', icon: <ListBulletIcon /> },
+                        { id: 'MONTH', label: 'Mes', icon: <CalendarIcon /> },
+                        { id: 'WEEK', label: 'Semana', icon: <CalendarDaysIcon /> },
+                        { id: 'CUSTOM', label: 'Rango', icon: <AdjustmentsHorizontalIcon /> }
+                    ].map(r => (
+                        <button
+                            key={r.id}
+                            onClick={() => setRangeType(r.id)}
+                            className={`segmented-item ${rangeType === r.id ? 'active' : ''}`}
+                        >
+                            <span className="segmented-icon">{r.icon}</span>
+                            <span className="segmented-label">{r.label}</span>
+                        </button>
+                    ))}
+                    {/* Sliding background */}
+                    <div
+                        className="segmented-highlight"
+                        style={{
+                            left: `${['TOTAL', 'MONTH', 'WEEK', 'CUSTOM'].indexOf(rangeType) * 25}%`
+                        }}
+                    />
+                </div>
             </div>
 
             {/* Range Header Pill */}
@@ -378,38 +382,60 @@ export default function Statistics() {
                 </div>
             )}
             <style>{`
-                .time-picker-bar {
+                .segmented-control-wrapper {
+                    margin-bottom: 2rem;
+                    padding: 0 0.25rem;
+                }
+                .segmented-control {
                     display: flex;
                     position: relative;
                     background: rgba(255, 255, 255, 0.03);
                     border: 1px solid var(--border);
-                    border-radius: 2rem;
-                    padding: 0.25rem;
-                    margin-bottom: 2rem;
+                    border-radius: 1rem;
+                    padding: 0;
+                    width: 100%;
                     isolation: isolate;
+                    overflow: hidden;
                 }
-                .time-picker-item {
+                .segmented-item {
                     flex: 1;
-                    padding: 0.6rem 0;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.25rem;
+                    padding: 0.75rem 0;
                     border: none;
                     background: none;
                     color: var(--text-secondary);
-                    font-size: 0.8125rem;
+                    font-size: 0.65rem;
                     font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.025em;
                     cursor: pointer;
-                    z-index: 2;
                     transition: color 0.3s;
+                    z-index: 2;
                 }
-                .time-picker-item.active {
+                .segmented-item.active {
                     color: white;
                 }
-                .time-picker-highlight {
+                .segmented-icon {
+                    width: 1.25rem;
+                    height: 1.25rem;
+                    opacity: 0.7;
+                    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+                }
+                .segmented-item.active .segmented-icon {
+                    opacity: 1;
+                    transform: scale(1.1);
+                }
+                .segmented-highlight {
                     position: absolute;
-                    top: 0.25rem;
-                    bottom: 0.25rem;
-                    width: calc(25% - 0.25rem);
+                    top: 0;
+                    bottom: 0;
+                    width: 25%;
                     background: var(--primary);
-                    border-radius: 2rem;
+                    border-radius: 0.9rem;
                     z-index: 1;
                     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                     box-shadow: 0 4px 15px rgba(236, 43, 120, 0.3);

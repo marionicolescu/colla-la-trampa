@@ -198,9 +198,10 @@ export default function History() {
                     background: rgba(255, 255, 255, 0.03);
                     border: 1px solid var(--border);
                     border-radius: 1rem;
-                    padding: 0.25rem;
+                    padding: 0;
                     width: 100%;
                     isolation: isolate;
+                    overflow: hidden;
                 }
                 .segmented-item {
                     flex: 1;
@@ -209,7 +210,7 @@ export default function History() {
                     align-items: center;
                     justify-content: center;
                     gap: 0.25rem;
-                    padding: 0.5rem 0;
+                    padding: 0.75rem 0;
                     border: none;
                     background: none;
                     color: var(--text-secondary);
@@ -236,11 +237,11 @@ export default function History() {
                 }
                 .segmented-highlight {
                     position: absolute;
-                    top: 0.25rem;
-                    bottom: 0.25rem;
-                    width: calc(25% - 0.25rem);
+                    top: 0;
+                    bottom: 0;
+                    width: 25%;
                     background: var(--primary);
-                    border-radius: 0.8rem;
+                    border-radius: 0.9rem;
                     z-index: 1;
                     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                     box-shadow: 0 4px 12px rgba(236, 43, 120, 0.3);
