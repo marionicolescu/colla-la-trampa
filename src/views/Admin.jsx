@@ -35,6 +35,7 @@ export default function Admin() {
     const [editTx, setEditTx] = useState(null);
     const [bankMovements, setBankMovements] = useState([]);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [manualMatchMove, setManualMatchMove] = useState(null); // The bank movement being matched
 
     // Filtering logic
     const filtered = transactions.filter(t => {
@@ -164,7 +165,7 @@ export default function Admin() {
                     (t.type === 'PAYMENT' || t.type === 'ADVANCE')
                 );
 
-                // Try to refine by member name in description
+                // Strict Match: only pair if name/bizum is in description
                 let matchedTx = null;
                 if (candidates.length > 0) {
                     matchedTx = candidates.find(t => {
@@ -174,12 +175,6 @@ export default function Admin() {
                             desc.toLowerCase().includes(name.toLowerCase())
                         );
                     });
-
-                    // If still no name match, but only 1 candidate of that amount, we can tentatively match
-                    // but it's safer to only auto-pair if name is found or there's only 1 unverified tx total for that amount
-                    if (!matchedTx && candidates.length === 1) {
-                        matchedTx = candidates[0];
-                    }
                 }
 
                 newMovements.push({
@@ -214,6 +209,16 @@ export default function Admin() {
         });
         setBankMovements(prev => prev.filter(m => m.bankId !== move.bankId));
         showToast('Transacción verificada y vinculada');
+    };
+
+    const handleManualSelect = async (move, txId) => {
+        await updateTransaction(txId, {
+            verified: true,
+            bankId: move.bankId
+        });
+        setBankMovements(prev => prev.filter(m => m.bankId !== move.bankId));
+        setManualMatchMove(null);
+        showToast('Transacción vinculada manualmente');
     };
 
     const verifyAllMatches = async () => {
@@ -343,10 +348,10 @@ export default function Admin() {
                                     {move.matchedId ? (
                                         <>
                                             <div className="recon-match-name">{move.matchedMember}</div>
-                                            <div className="recon-match-info">Detectado por importe</div>
                                             <button
                                                 onClick={() => verifyMatched(move)}
                                                 className="btn-verify-recon"
+                                                style={{ marginTop: '0.5rem' }}
                                             >
                                                 Confirmar
                                             </button>
@@ -354,7 +359,12 @@ export default function Admin() {
                                     ) : (
                                         <div className="recon-no-match">
                                             <span>Sin coincidencia</span>
-                                            <div style={{ fontSize: '0.65rem', opacity: 0.7, marginTop: '0.25rem' }}>Nadie registró este importe</div>
+                                            <button
+                                                onClick={() => setManualMatchMove(move)}
+                                                className="btn-manual-recon"
+                                            >
+                                                Vincular Manual
+                                            </button>
                                         </div>
                                     )}
                                 </div>
@@ -583,6 +593,61 @@ export default function Admin() {
                 </div>
             </Modal>
 
+            <Modal isOpen={!!manualMatchMove} onClose={() => setManualMatchMove(null)} title="Vincular Manualmente">
+                <div className="flex flex-col gap-md">
+                    <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.03)', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>MOVIMIENTO DEL BANCO</div>
+                        <div style={{ fontWeight: 600 }}>{manualMatchMove?.description}</div>
+                        <div style={{ color: 'var(--primary)', fontWeight: 700 }}>{manualMatchMove?.amount?.toFixed(2)}€</div>
+                    </div>
+
+                    <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
+                        Selecciona la transacción de la App:
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '300px', overflowY: 'auto', paddingRight: '0.25rem' }}>
+                        {transactions
+                            .filter(t => !t.verified && Math.abs(t.amount - (manualMatchMove?.amount || 0)) < 0.01)
+                            .map(tx => {
+                                const m = members.find(mem => mem.id === tx.memberId);
+                                return (
+                                    <div
+                                        key={tx.id}
+                                        onClick={() => handleManualSelect(manualMatchMove, tx.id)}
+                                        style={{
+                                            padding: '0.75rem',
+                                            borderRadius: '0.5rem',
+                                            border: '1px solid var(--border)',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            backgroundColor: 'var(--bg-app)'
+                                        }}
+                                        className="manual-match-item"
+                                    >
+                                        <div>
+                                            <div style={{ fontWeight: 600 }}>{m?.name}</div>
+                                            <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{new Date(tx.timestamp).toLocaleDateString()}</div>
+                                        </div>
+                                        <div style={{ fontWeight: 700 }}>{tx.amount.toFixed(2)}€</div>
+                                    </div>
+                                );
+                            })
+                        }
+                        {transactions.filter(t => !t.verified && Math.abs(t.amount - (manualMatchMove?.amount || 0)) < 0.01).length === 0 && (
+                            <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+                                No hay transacciones sin verificar con este importe
+                            </div>
+                        )}
+                    </div>
+
+                    <button onClick={() => setManualMatchMove(null)} className="btn" style={{ width: '100%', marginTop: '0.5rem' }}>
+                        Cancelar
+                    </button>
+                </div>
+            </Modal>
+
             <style>{`
                 .admin-select {
                     width: 100%;
@@ -776,6 +841,26 @@ export default function Admin() {
                 }
                 .btn-verify-match:hover {
                     opacity: 0.8;
+                }
+                .btn-manual-recon {
+                    background: transparent;
+                    color: var(--primary);
+                    border: 1px solid var(--primary);
+                    padding: 0.25rem 0.5rem;
+                    border-radius: 0.4rem;
+                    font-size: 0.7rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    margin-top: 0.5rem;
+                    transition: all 0.2s;
+                }
+                .btn-manual-recon:hover {
+                    background: var(--primary);
+                    color: white;
+                }
+                .manual-match-item:hover {
+                    border-color: var(--primary) !important;
+                    background: rgba(255, 255, 255, 0.05) !important;
                 }
                 .file-upload-zone label:hover {
                     background: rgba(255, 255, 255, 0.02);
