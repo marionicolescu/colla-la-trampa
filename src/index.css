@@ -409,40 +409,32 @@ input:checked+.slider-toggle:before {
 
 /* Reconciliation UI */
 .reconciliation-card {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: stretch;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
   margin-bottom: 0.75rem;
-  min-height: 100px;
+  min-height: 120px;
 }
 
 .recon-side {
-  flex: 1;
-  padding: 0.75rem;
+  padding: 1rem 0.75rem 0.75rem 0.75rem;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
+  text-align: center;
   position: relative;
 }
 
 .recon-side.bank {
-  border-right: 1px solid var(--border);
   background: rgba(0, 0, 0, 0.2);
-}
-
-.recon-side.app {
-  background: transparent;
 }
 
 .recon-side.app.high {
   background: rgba(34, 197, 94, 0.05);
-}
-
-.recon-side.app.medium {
-  background: rgba(234, 179, 8, 0.05);
 }
 
 .recon-side.app.none {
@@ -451,54 +443,75 @@ input:checked+.slider-toggle:before {
 
 .recon-badge {
   position: absolute;
-  top: 0.25rem;
-  font-size: 0.6rem;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  opacity: 0.5;
+  top: 0.4rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.55rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  opacity: 0.4;
+  text-transform: uppercase;
 }
 
-.recon-badge.bank {
-  left: 0.75rem;
+.recon-date-time {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.5rem;
 }
 
-.recon-badge.app {
-  left: 0.75rem;
+.recon-date-time .date {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
-.recon-date {
-  font-size: 0.7rem;
+.recon-date-time .time {
+  font-size: 0.65rem;
   color: var(--text-secondary);
-  margin-bottom: 0.2rem;
 }
 
-.recon-desc {
-  font-size: 0.8rem;
-  font-weight: 500;
-  white-space: nowrap;
+.recon-main-text {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0.5rem 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 140px;
+  line-height: 1.2;
 }
 
 .recon-amount {
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-size: 1.125rem;
+  font-weight: 800;
   color: var(--success);
 }
 
-.recon-divider {
+.recon-center {
+  width: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  position: relative;
+  padding: 0.5rem;
+  gap: 0.5rem;
+}
+
+.recon-divider-icon {
   width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10;
   background: #1a1a1a;
-  margin: 0 -16px;
   border: 1px solid var(--border);
   border-radius: 50%;
-  height: 32px;
-  align-self: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
@@ -510,51 +523,39 @@ input:checked+.slider-toggle:before {
   color: #22c55e;
 }
 
-.recon-status-icon.medium {
-  color: #eab308;
-}
-
 .recon-status-icon.none {
   color: #ef4444;
 }
 
-.recon-match-name {
-  font-weight: 700;
-  font-size: 0.9rem;
-  color: var(--text-primary);
-}
-
-.recon-match-info {
-  font-size: 0.65rem;
-  color: var(--text-secondary);
-  margin-bottom: 0.5rem;
-}
-
-.btn-verify-recon {
+.btn-confirm-center {
   background: var(--primary);
   color: white;
   border: none;
-  padding: 0.35rem 0.75rem;
+  padding: 0.4rem 0.6rem;
   border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.65rem;
+  font-weight: 800;
   cursor: pointer;
   transition: all 0.2s;
+  text-transform: uppercase;
+  width: 100%;
 }
 
-.btn-verify-recon:active {
+.btn-confirm-center:active {
   transform: scale(0.95);
-  opacity: 0.9;
-}
-
-.recon-no-match {
-  text-align: center;
-  color: var(--text-secondary);
-  font-size: 0.8rem;
+  background: var(--primary-dark);
 }
 
 @media (max-width: 480px) {
-  .recon-desc {
-    max-width: 100px;
+  .recon-center {
+    width: 70px;
+  }
+
+  .recon-main-text {
+    font-size: 0.8rem;
+  }
+
+  .recon-amount {
+    font-size: 1rem;
   }
 }

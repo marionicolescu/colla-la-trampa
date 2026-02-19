@@ -327,50 +327,78 @@ export default function Admin() {
                             </button>
                         </div>
 
-                        {bankMovements.map(item => (
-                            <div key={item.appTx.id} className="reconciliation-card">
-                                {/* Left Side: App Record */}
-                                <div className="recon-side app high">
-                                    <div className="recon-badge app">APP</div>
-                                    <div className="recon-date">{new Date(item.appTx.timestamp).toLocaleDateString([], { day: '2-digit', month: '2-digit' })}</div>
-                                    <div className="recon-match-name">{item.memberName}</div>
-                                    <div className="recon-amount">{item.appTx.amount.toFixed(2)}€</div>
-                                </div>
+                        {bankMovements.map(item => {
+                            const appDate = new Date(item.appTx.timestamp);
+                            const appDateStr = appDate.toLocaleDateString([], { day: '2-digit', month: '2-digit' });
+                            const appTimeStr = appDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-                                {/* Divider with Icon */}
-                                <div className="recon-divider">
-                                    {item.confidence === 'high' ? (
-                                        <CheckCircleIcon className="recon-status-icon high" />
-                                    ) : (
-                                        <ExclamationTriangleIcon className="recon-status-icon none" />
-                                    )}
-                                </div>
+                            // Bank date: usually CSV has a string. We try to keep it consistent.
+                            // Revolut format is often YYYY-MM-DD HH:mm:ss
+                            let bankDateStr = '-';
+                            let bankTimeStr = '-';
+                            if (item.bankMatch?.date) {
+                                const parts = item.bankMatch.date.split(' ');
+                                if (parts.length >= 1) {
+                                    // Try to format date as dd/mm if it's yyyy-mm-dd
+                                    const dParts = parts[0].split('-');
+                                    if (dParts.length === 3) bankDateStr = `${dParts[2]}/${dParts[1]}`;
+                                    else bankDateStr = parts[0];
+                                }
+                                if (parts.length >= 2) {
+                                    bankTimeStr = parts[1].substring(0, 5); // HH:mm
+                                }
+                            }
 
-                                {/* Right Side: Bank Match */}
-                                <div className={`recon-side bank ${item.bankMatch ? 'high' : 'none'}`}>
-                                    <div className="recon-badge bank">BANCO</div>
-                                    {item.bankMatch ? (
-                                        <>
-                                            <div className="recon-date">{item.bankMatch.date?.split(' ')[0]}</div>
-                                            <div className="recon-desc" style={{ fontWeight: 600 }}>{item.cleanBankDesc}</div>
-                                            <div className="recon-amount">{item.bankMatch.amount.toFixed(2)}€</div>
+                            return (
+                                <div key={item.appTx.id} className="reconciliation-card">
+                                    {/* Left Side: App Record */}
+                                    <div className={`recon-side app ${item.confidence === 'high' ? 'high' : 'none'}`}>
+                                        <div className="recon-badge">APP</div>
+                                        <div className="recon-date-time">
+                                            <span className="date">{appDateStr}</span>
+                                            <span className="time">{appTimeStr}</span>
+                                        </div>
+                                        <div className="recon-main-text">{item.memberName}</div>
+                                        <div className="recon-amount">{item.appTx.amount.toFixed(2)}€</div>
+                                    </div>
+
+                                    {/* Center: Status & Action */}
+                                    <div className="recon-center">
+                                        <div className="recon-divider-icon">
+                                            {item.confidence === 'high' ? (
+                                                <CheckCircleIcon className="recon-status-icon high" />
+                                            ) : (
+                                                <ExclamationTriangleIcon className="recon-status-icon none" />
+                                            )}
+                                        </div>
+                                        {item.bankMatch && (
                                             <button
                                                 onClick={() => verifyMatched(item)}
-                                                className="btn-verify-recon"
-                                                style={{ marginTop: '0.5rem' }}
+                                                className="btn-confirm-center"
+                                                title="Confirmar Transacción"
                                             >
                                                 Confirmar
                                             </button>
-                                        </>
-                                    ) : (
-                                        <div className="recon-no-match">
-                                            <span>No encontrado en extracto</span>
-                                            {/* Aquí podríamos añadir lógica para buscar manualmente si es necesario */}
+                                        )}
+                                    </div>
+
+                                    {/* Right Side: Bank Match */}
+                                    <div className={`recon-side bank ${item.bankMatch ? 'high' : 'none'}`}>
+                                        <div className="recon-badge">BANCO</div>
+                                        <div className="recon-date-time">
+                                            <span className="date">{bankDateStr}</span>
+                                            <span className="time">{bankTimeStr}</span>
                                         </div>
-                                    )}
+                                        <div className="recon-main-text" title={item.bankMatch?.description}>
+                                            {item.bankMatch ? item.cleanBankDesc : 'No encontrado'}
+                                        </div>
+                                        <div className="recon-amount">
+                                            {item.bankMatch ? `${item.bankMatch.amount.toFixed(2)}€` : '-'}
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </div>
