@@ -118,151 +118,159 @@ export default function Admin() {
         setIsProcessing(true);
         const reader = new FileReader();
         reader.onload = (event) => {
-            const text = event.target.result;
-            const lines = text.split('\n').filter(l => l.trim());
-            if (lines.length < 2) return;
+            try {
+                const text = event.target.result;
+                const lines = text.split('\n').filter(l => l.trim());
+                if (lines.length < 2) return;
 
-            // Detect delimiter (semicolon or comma)
-            const firstLine = lines[0];
-            const delimiter = firstLine.includes(';') ? ';' : ',';
-            const headers = firstLine.split(delimiter).map(h => h.trim().replace(/"/g, ''));
+                // Detect delimiter (semicolon or comma)
+                const firstLine = lines[0];
+                const delimiter = firstLine.includes(';') ? ';' : ',';
+                const headers = firstLine.split(delimiter).map(h => h.trim().replace(/"/g, ''));
 
-            const idIdx = headers.findIndex(h => h.toLowerCase() === 'id' || h.toLowerCase() === 'reference');
-            const descIdx = headers.findIndex(h => h.toLowerCase().includes('descrip'));
-            const amountIdx = headers.findIndex(h => h.toLowerCase().includes('import') || h.toLowerCase().includes('amount'));
-            const dateIdx = headers.findIndex(h => h.toLowerCase().includes('finalizaci') || h.toLowerCase().includes('completed date') || h.toLowerCase().includes('date') || h.toLowerCase().includes('fecha'));
-            const balanceIdx = headers.findIndex(h => h.toLowerCase().includes('saldo') || h.toLowerCase().includes('balance'));
+                const idIdx = headers.findIndex(h => h.toLowerCase() === 'id' || h.toLowerCase() === 'reference');
+                const descIdx = headers.findIndex(h => h.toLowerCase().includes('descrip'));
+                const amountIdx = headers.findIndex(h => h.toLowerCase().includes('import') || h.toLowerCase().includes('amount'));
+                const dateIdx = headers.findIndex(h => h.toLowerCase().includes('finalizaci') || h.toLowerCase().includes('completed date') || h.toLowerCase().includes('date') || h.toLowerCase().includes('fecha'));
+                const balanceIdx = headers.findIndex(h => h.toLowerCase().includes('saldo') || h.toLowerCase().includes('balance'));
 
-            // Helper to parse European and ISO dates
-            const parseCSVDate = (dateStr) => {
-                if (!dateStr) return null;
-                // Try DD/MM/YYYY HH:mm:ss
-                const europeanMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s*(.*)$/);
-                if (europeanMatch) {
-                    const [, day, month, year, time] = europeanMatch;
-                    return new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')} ${time || '00:00:00'}`);
+                // Helper to parse European and ISO dates
+                const parseCSVDate = (dateStr) => {
+                    if (!dateStr) return null;
+                    // Try DD/MM/YYYY HH:mm:ss
+                    const europeanMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s*(.*)$/);
+                    if (europeanMatch) {
+                        const [, day, month, year, time] = europeanMatch;
+                        return new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')} ${time?.trim() || '00:00:00'}`);
+                    }
+                    // Try YYYY-MM-DD HH:mm:ss
+                    const isoMatch = dateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})\s*(.*)$/);
+                    if (isoMatch) {
+                        const [, year, month, day, time] = isoMatch;
+                        return new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')} ${time?.trim() || '00:00:00'}`);
+                    }
+                    return new Date(dateStr);
+                };
+
+                // 1. Process all bank movements from CSV into a searchable list
+                const allBankMovements = [];
+                for (let i = 1; i < lines.length; i++) {
+                    const columns = lines[i].split(delimiter).map(c => c.trim().replace(/"/g, ''));
+                    if (columns.length < 2) continue;
+
+                    const rawDesc = columns[descIdx] || '';
+                    // Handle European number format (0,50 -> 0.50)
+                    const amountRaw = (columns[amountIdx] || '0').replace(',', '.');
+                    const amount = Math.abs(parseFloat(amountRaw));
+                    const dateRaw = columns[dateIdx] || '';
+                    const dateObj = parseCSVDate(dateRaw);
+                    const dateTs = dateObj && !isNaN(dateObj.getTime()) ? dateObj.getTime() : 0;
+
+                    const balance = balanceIdx !== -1 ? columns[balanceIdx] || '' : '';
+                    const amountValue = parseFloat(amountRaw);
+                    const type = amountValue > 0 ? 'IN' : 'OUT';
+
+                    if (type !== 'IN' || isNaN(amount)) continue;
+
+                    let bankId;
+                    if (idIdx !== -1 && columns[idIdx]) {
+                        bankId = columns[idIdx];
+                    } else {
+                        const rawId = `${dateRaw}_${amount}_${balance}`;
+                        bankId = `bank_${btoa(unescape(encodeURIComponent(rawId)))}`;
+                    }
+
+                    allBankMovements.push({ bankId, amount, description: rawDesc, date: dateRaw, timestamp: dateTs });
                 }
-                // Try YYYY-MM-DD HH:mm:ss
-                const isoMatch = dateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})\s*(.*)$/);
-                if (isoMatch) {
-                    const [, year, month, day, time] = isoMatch;
-                    return new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')} ${time || '00:00:00'}`);
-                }
-                return new Date(dateStr);
-            };
 
-            // 1. Process all bank movements from CSV into a searchable list
-            const allBankMovements = [];
-            for (let i = 1; i < lines.length; i++) {
-                const columns = lines[i].split(delimiter).map(c => c.trim().replace(/"/g, ''));
-                if (columns.length <= Math.max(descIdx, amountIdx, dateIdx)) continue;
+                // 2. Iterate through App transactions that need verification
+                const pendingAppTxs = transactions.filter(t =>
+                    !t.verified &&
+                    (t.type === 'PAYMENT' || t.type === 'ADVANCE')
+                );
 
-                const rawDesc = columns[descIdx] || '';
-                // Handle European number format (0,50 -> 0.50)
-                const amountRaw = (columns[amountIdx] || '0').replace(',', '.');
-                const amount = Math.abs(parseFloat(amountRaw));
-                const dateRaw = columns[dateIdx] || '';
-                const dateObj = parseCSVDate(dateRaw);
-                const dateTs = dateObj && !isNaN(dateObj.getTime()) ? dateObj.getTime() : 0;
+                // 3. Create all possible (App, Bank) match pairs with their time difference
+                const allPossiblePairs = [];
+                pendingAppTxs.forEach(tx => {
+                    const member = members.find(m => m.id === tx.memberId);
+                    const namesToMatch = [member?.name, member?.bizum].filter(Boolean);
 
-                const balance = columns[balanceIdx] || '';
-                const type = parseFloat(amountRaw) > 0 ? 'IN' : 'OUT';
+                    allBankMovements.forEach(move => {
+                        const amountMatch = Math.abs(tx.amount - move.amount) < 0.01;
+                        const nameMatch = namesToMatch.some(name =>
+                            move.description.toLowerCase().includes(name.toLowerCase())
+                        );
+                        const alreadyLinked = transactions.some(t => t.bankId === move.bankId);
 
-                if (type !== 'IN' || isNaN(amount)) continue;
+                        if (amountMatch && nameMatch && !alreadyLinked) {
+                            const timeDiff = move.timestamp ? Math.abs(tx.timestamp - move.timestamp) : Infinity;
+                            allPossiblePairs.push({ tx, move, timeDiff, member, namesToMatch });
+                        }
+                    });
+                });
 
-                let bankId;
-                if (idIdx !== -1 && columns[idIdx]) {
-                    bankId = columns[idIdx];
-                } else {
-                    const rawId = `${date}_${amount}_${balance}`;
-                    bankId = `bank_${btoa(unescape(encodeURIComponent(rawId)))}`;
-                }
+                // 4. Sort all pairs by time difference (Ascending - closest first)
+                allPossiblePairs.sort((a, b) => a.timeDiff - b.timeDiff);
 
-                allBankMovements.push({ bankId, amount, description: rawDesc, date: dateRaw, timestamp: dateTs });
-            }
+                // 5. Greedily match pairs
+                const matchedAppIds = new Set();
+                const matchedBankIds = new Set();
+                const bestMatches = new Map(); // tx.id -> { move, namesToMatch }
 
-            // 2. Iterate through App transactions that need verification
-            const pendingAppTxs = transactions.filter(t =>
-                !t.verified &&
-                (t.type === 'PAYMENT' || t.type === 'ADVANCE')
-            );
-
-            // 3. Create all possible (App, Bank) match pairs with their time difference
-            const allPossiblePairs = [];
-            pendingAppTxs.forEach(tx => {
-                const member = members.find(m => m.id === tx.memberId);
-                const namesToMatch = [member?.name, member?.bizum].filter(Boolean);
-
-                allBankMovements.forEach(move => {
-                    const amountMatch = Math.abs(tx.amount - move.amount) < 0.01;
-                    const nameMatch = namesToMatch.some(name =>
-                        move.description.toLowerCase().includes(name.toLowerCase())
-                    );
-                    const alreadyLinked = transactions.some(t => t.bankId === move.bankId);
-
-                    if (amountMatch && nameMatch && !alreadyLinked) {
-                        const timeDiff = move.timestamp ? Math.abs(tx.timestamp - move.timestamp) : Infinity;
-                        allPossiblePairs.push({ tx, move, timeDiff, member, namesToMatch });
+                allPossiblePairs.forEach(pair => {
+                    if (!matchedAppIds.has(pair.tx.id) && !matchedBankIds.has(pair.move.bankId)) {
+                        matchedAppIds.add(pair.tx.id);
+                        matchedBankIds.add(pair.move.bankId);
+                        bestMatches.set(pair.tx.id, {
+                            move: pair.move,
+                            namesToMatch: pair.namesToMatch
+                        });
                     }
                 });
-            });
 
-            // 4. Sort all pairs by time difference (Ascending - closest first)
-            allPossiblePairs.sort((a, b) => a.timeDiff - b.timeDiff);
+                // 6. Build the final reconciliation list based on App TXs
+                const reconciliationItems = pendingAppTxs.map(tx => {
+                    const member = members.find(m => m.id === tx.memberId);
+                    const matchData = bestMatches.get(tx.id);
+                    const match = matchData?.move || null;
+                    const namesToMatch = matchData?.namesToMatch || [member?.name, member?.bizum].filter(Boolean);
 
-            // 5. Greedily match pairs
-            const matchedAppIds = new Set();
-            const matchedBankIds = new Set();
-            const bestMatches = new Map(); // tx.id -> { move, namesToMatch }
+                    // Clean bank description if there's a match
+                    let cleanBankDesc = '';
+                    if (match) {
+                        const desc = match.description;
+                        const lowerDesc = desc.toLowerCase();
+                        let matchIndex = -1;
 
-            allPossiblePairs.forEach(pair => {
-                if (!matchedAppIds.has(pair.tx.id) && !matchedBankIds.has(pair.move.bankId)) {
-                    matchedAppIds.add(pair.tx.id);
-                    matchedBankIds.add(pair.move.bankId);
-                    bestMatches.set(pair.tx.id, {
-                        move: pair.move,
-                        namesToMatch: pair.namesToMatch
-                    });
-                }
-            });
-
-            // 6. Build the final reconciliation list based on App TXs
-            const reconciliationItems = pendingAppTxs.map(tx => {
-                const member = members.find(m => m.id === tx.memberId);
-                const matchData = bestMatches.get(tx.id);
-                const match = matchData?.move || null;
-                const namesToMatch = matchData?.namesToMatch || [member?.name, member?.bizum].filter(Boolean);
-
-                // Clean bank description if there's a match
-                let cleanBankDesc = '';
-                if (match) {
-                    const desc = match.description;
-                    const lowerDesc = desc.toLowerCase();
-                    let matchIndex = -1;
-
-                    for (const name of namesToMatch) {
-                        const idx = lowerDesc.indexOf(name.toLowerCase());
-                        if (idx !== -1 && (matchIndex === -1 || idx < matchIndex)) {
-                            matchIndex = idx;
+                        for (const name of namesToMatch) {
+                            const idx = lowerDesc.indexOf(name.toLowerCase());
+                            if (idx !== -1 && (matchIndex === -1 || idx < matchIndex)) {
+                                matchIndex = idx;
+                            }
                         }
+
+                        cleanBankDesc = matchIndex !== -1 ? desc.substring(matchIndex) : desc;
                     }
 
-                    cleanBankDesc = matchIndex !== -1 ? desc.substring(matchIndex) : desc;
+                    return {
+                        appTx: tx,
+                        memberName: member?.name || 'Unknown',
+                        bankMatch: match || null,
+                        cleanBankDesc,
+                        confidence: match ? 'high' : 'none'
+                    };
+                });
+
+                setBankMovements(reconciliationItems);
+                setIsProcessing(false);
+                if (reconciliationItems.length === 0) {
+                    showToast('No hay pagos pendientes de verificar');
                 }
-
-                return {
-                    appTx: tx,
-                    memberName: member?.name || 'Unknown',
-                    bankMatch: match || null,
-                    cleanBankDesc,
-                    confidence: match ? 'high' : 'none'
-                };
-            });
-
-            setBankMovements(reconciliationItems);
-            setIsProcessing(false);
-            if (reconciliationItems.length === 0) {
-                showToast('No hay pagos pendientes de verificar');
+            } catch (err) {
+                console.error('Error processing CSV:', err);
+                showToast('Error al procesar el archivo CSV', 'error');
+            } finally {
+                setIsProcessing(false);
             }
         };
         reader.readAsText(file);
