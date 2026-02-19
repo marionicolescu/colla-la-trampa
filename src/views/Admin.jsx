@@ -137,19 +137,21 @@ export default function Admin() {
                 // Helper to parse European and ISO dates
                 const parseCSVDate = (dateStr) => {
                     if (!dateStr) return null;
-                    // Try DD/MM/YYYY HH:mm:ss
-                    const europeanMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s*(.*)$/);
-                    if (europeanMatch) {
-                        const [, day, month, year, time] = europeanMatch;
-                        return new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')} ${time?.trim() || '00:00:00'}`);
+                    const s = dateStr.trim();
+                    // European: DD/MM/YYYY or DD/MM/YY etc.
+                    const euroMatch = s.match(/^(\d{1,2})[/\-. ](\d{1,2})[/\-. ](\d{2,4})(\s+(.*))?$/);
+                    if (euroMatch) {
+                        let [, d, m, y, , t] = euroMatch;
+                        if (y.length === 2) y = "20" + y;
+                        return new Date(`${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')} ${t?.trim() || '00:00:00'}`);
                     }
-                    // Try YYYY-MM-DD HH:mm:ss
-                    const isoMatch = dateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})\s*(.*)$/);
+                    // ISO: YYYY-MM-DD...
+                    const isoMatch = s.match(/^(\d{4})[/\-. ](\d{1,2})[/\-. ](\d{1,2})(\s+(.*))?$/);
                     if (isoMatch) {
-                        const [, year, month, day, time] = isoMatch;
-                        return new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')} ${time?.trim() || '00:00:00'}`);
+                        const [, y, m, d, , t] = isoMatch;
+                        return new Date(`${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')} ${t?.trim() || '00:00:00'}`);
                     }
-                    return new Date(dateStr);
+                    return new Date(s);
                 };
 
                 // 1. Process all bank movements from CSV into a searchable list
@@ -187,7 +189,7 @@ export default function Admin() {
                 const pendingAppTxs = transactions.filter(t =>
                     !t.verified &&
                     (t.type === 'PAYMENT' || t.type === 'ADVANCE')
-                );
+                ).sort((a, b) => a.timestamp - b.timestamp);
 
                 // 3. Create all possible (App, Bank) match pairs with their time difference
                 const allPossiblePairs = [];
@@ -197,9 +199,10 @@ export default function Admin() {
 
                     allBankMovements.forEach(move => {
                         const amountMatch = Math.abs(tx.amount - move.amount) < 0.01;
-                        const nameMatch = namesToMatch.some(name =>
-                            move.description.toLowerCase().includes(name.toLowerCase())
-                        );
+                        const nameMatch = namesToMatch.some(name => {
+                            const n = name.trim().toLowerCase();
+                            return n.length > 2 && move.description.toLowerCase().includes(n);
+                        });
                         const alreadyLinked = transactions.some(t => t.bankId === move.bankId);
 
                         if (amountMatch && nameMatch && !alreadyLinked) {
