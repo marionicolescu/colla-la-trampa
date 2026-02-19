@@ -119,26 +119,54 @@ export default function Admin() {
         const reader = new FileReader();
         reader.onload = (event) => {
             const text = event.target.result;
-            const lines = text.split('\n');
-            const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+            const lines = text.split('\n').filter(l => l.trim());
+            if (lines.length < 2) return;
+
+            // Detect delimiter (semicolon or comma)
+            const firstLine = lines[0];
+            const delimiter = firstLine.includes(';') ? ';' : ',';
+            const headers = firstLine.split(delimiter).map(h => h.trim().replace(/"/g, ''));
 
             const idIdx = headers.findIndex(h => h.toLowerCase() === 'id' || h.toLowerCase() === 'reference');
             const descIdx = headers.findIndex(h => h.toLowerCase().includes('descrip'));
             const amountIdx = headers.findIndex(h => h.toLowerCase().includes('import') || h.toLowerCase().includes('amount'));
-            const dateIdx = headers.findIndex(h => h.toLowerCase().includes('finalizaci') || h.toLowerCase().includes('completed date'));
+            const dateIdx = headers.findIndex(h => h.toLowerCase().includes('finalizaci') || h.toLowerCase().includes('completed date') || h.toLowerCase().includes('date') || h.toLowerCase().includes('fecha'));
             const balanceIdx = headers.findIndex(h => h.toLowerCase().includes('saldo') || h.toLowerCase().includes('balance'));
+
+            // Helper to parse European and ISO dates
+            const parseCSVDate = (dateStr) => {
+                if (!dateStr) return null;
+                // Try DD/MM/YYYY HH:mm:ss
+                const europeanMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s*(.*)$/);
+                if (europeanMatch) {
+                    const [, day, month, year, time] = europeanMatch;
+                    return new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')} ${time || '00:00:00'}`);
+                }
+                // Try YYYY-MM-DD HH:mm:ss
+                const isoMatch = dateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})\s*(.*)$/);
+                if (isoMatch) {
+                    const [, year, month, day, time] = isoMatch;
+                    return new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')} ${time || '00:00:00'}`);
+                }
+                return new Date(dateStr);
+            };
 
             // 1. Process all bank movements from CSV into a searchable list
             const allBankMovements = [];
             for (let i = 1; i < lines.length; i++) {
-                if (!lines[i].trim()) continue;
-                const columns = lines[i].split(',').map(c => c.trim().replace(/"/g, ''));
+                const columns = lines[i].split(delimiter).map(c => c.trim().replace(/"/g, ''));
+                if (columns.length <= Math.max(descIdx, amountIdx, dateIdx)) continue;
 
                 const rawDesc = columns[descIdx] || '';
-                const amount = Math.abs(parseFloat(columns[amountIdx]));
-                const date = columns[dateIdx] || '';
+                // Handle European number format (0,50 -> 0.50)
+                const amountRaw = (columns[amountIdx] || '0').replace(',', '.');
+                const amount = Math.abs(parseFloat(amountRaw));
+                const dateRaw = columns[dateIdx] || '';
+                const dateObj = parseCSVDate(dateRaw);
+                const dateTs = dateObj && !isNaN(dateObj.getTime()) ? dateObj.getTime() : 0;
+
                 const balance = columns[balanceIdx] || '';
-                const type = parseFloat(columns[amountIdx]) > 0 ? 'IN' : 'OUT';
+                const type = parseFloat(amountRaw) > 0 ? 'IN' : 'OUT';
 
                 if (type !== 'IN' || isNaN(amount)) continue;
 
@@ -150,7 +178,7 @@ export default function Admin() {
                     bankId = `bank_${btoa(unescape(encodeURIComponent(rawId)))}`;
                 }
 
-                allBankMovements.push({ bankId, amount, description: rawDesc, date });
+                allBankMovements.push({ bankId, amount, description: rawDesc, date: dateRaw, timestamp: dateTs });
             }
 
             // 2. Iterate through App transactions that need verification
@@ -173,7 +201,7 @@ export default function Admin() {
                     const alreadyLinked = transactions.some(t => t.bankId === move.bankId);
 
                     if (amountMatch && nameMatch && !alreadyLinked) {
-                        const timeDiff = Math.abs(tx.timestamp - new Date(move.date).getTime());
+                        const timeDiff = move.timestamp ? Math.abs(tx.timestamp - move.timestamp) : Infinity;
                         allPossiblePairs.push({ tx, move, timeDiff, member, namesToMatch });
                     }
                 });
