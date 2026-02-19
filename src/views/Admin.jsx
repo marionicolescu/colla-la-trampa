@@ -157,23 +157,37 @@ export default function Admin() {
             const pendingAppTxs = transactions.filter(t =>
                 !t.verified &&
                 (t.type === 'PAYMENT' || t.type === 'ADVANCE')
-            );
+            ).sort((a, b) => a.timestamp - b.timestamp);
 
+            const claimedBankIds = new Set();
             const reconciliationItems = pendingAppTxs.map(tx => {
                 const member = members.find(m => m.id === tx.memberId);
                 const namesToMatch = [member?.name, member?.bizum].filter(Boolean);
 
                 // Find candidate matches in the bank list
-                const match = allBankMovements.find(move => {
+                const candidates = allBankMovements.filter(move => {
                     const amountMatch = Math.abs(tx.amount - move.amount) < 0.01;
                     const nameMatch = namesToMatch.some(name =>
                         move.description.toLowerCase().includes(name.toLowerCase())
                     );
-                    // Check if this bank movement is already linked in Firebase (to avoid double match)
                     const alreadyLinked = transactions.some(t => t.bankId === move.bankId);
+                    const alreadyClaimed = claimedBankIds.has(move.bankId);
 
-                    return amountMatch && nameMatch && !alreadyLinked;
+                    return amountMatch && nameMatch && !alreadyLinked && !alreadyClaimed;
                 });
+
+                // Pick the best match (closest date)
+                let match = null;
+                if (candidates.length > 0) {
+                    // Sort candidates by proximity to transaction timestamp
+                    candidates.sort((a, b) => {
+                        const diffA = Math.abs(tx.timestamp - new Date(a.date).getTime());
+                        const diffB = Math.abs(tx.timestamp - new Date(b.date).getTime());
+                        return diffA - diffB;
+                    });
+                    match = candidates[0];
+                    claimedBankIds.add(match.bankId);
+                }
 
                 // Clean bank description if there's a match
                 let cleanBankDesc = '';
