@@ -4,6 +4,7 @@ import Modal from '../components/Modal';
 import {
     TrashIcon,
     PencilIcon,
+    CheckIcon,
     CheckCircleIcon,
     XCircleIcon,
     FunnelIcon,
@@ -321,9 +322,9 @@ export default function Admin() {
                                 onClick={verifyAllMatches}
                                 className="btn btn-primary"
                                 style={{ fontSize: '0.7rem', padding: '0.4rem 0.8rem' }}
-                                disabled={bankMovements.filter(m => m.matchedId && m.confidence === 'high').length === 0}
+                                disabled={bankMovements.filter(m => m.bankMatch && m.confidence === 'high').length === 0}
                             >
-                                Verificar Automáticos ({bankMovements.filter(m => m.matchedId && m.confidence === 'high').length})
+                                Verificar Automáticos ({bankMovements.filter(m => m.bankMatch && m.confidence === 'high').length})
                             </button>
                         </div>
 
@@ -368,7 +369,7 @@ export default function Admin() {
                                                 className={`btn-confirm-icon ${item.confidence === 'high' ? 'high' : ''}`}
                                                 title="Confirmar Transacción"
                                             >
-                                                <CheckCircleIcon />
+                                                <CheckIcon />
                                             </button>
                                         </div>
                                     )}
