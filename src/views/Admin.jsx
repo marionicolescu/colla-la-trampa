@@ -118,118 +118,124 @@ export default function Admin() {
         const reader = new FileReader();
         reader.onload = (event) => {
             const text = event.target.result;
-            // Simple CSV parser for Revolut (Type,Product,Started Date,Completed Date,Description,Amount,Fee,Currency,State,Balance)
             const lines = text.split('\n');
             const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
 
-            // Expected Revolut Headers (Supporting Spanish and English)
             const idIdx = headers.findIndex(h => h.toLowerCase() === 'id' || h.toLowerCase() === 'reference');
             const descIdx = headers.findIndex(h => h.toLowerCase().includes('descrip'));
             const amountIdx = headers.findIndex(h => h.toLowerCase().includes('import') || h.toLowerCase().includes('amount'));
             const dateIdx = headers.findIndex(h => h.toLowerCase().includes('finalizaci') || h.toLowerCase().includes('completed date'));
             const balanceIdx = headers.findIndex(h => h.toLowerCase().includes('saldo') || h.toLowerCase().includes('balance'));
 
-            const newMovements = [];
-
+            // 1. Process all bank movements from CSV into a searchable list
+            const allBankMovements = [];
             for (let i = 1; i < lines.length; i++) {
                 if (!lines[i].trim()) continue;
                 const columns = lines[i].split(',').map(c => c.trim().replace(/"/g, ''));
 
-                const desc = columns[descIdx] || '';
+                const rawDesc = columns[descIdx] || '';
                 const amount = Math.abs(parseFloat(columns[amountIdx]));
                 const date = columns[dateIdx] || '';
                 const balance = columns[balanceIdx] || '';
                 const type = parseFloat(columns[amountIdx]) > 0 ? 'IN' : 'OUT';
 
-                // Only process inflows (payments/advances)
                 if (type !== 'IN' || isNaN(amount)) continue;
 
-                // Create a 100% unique surrogate ID using Date + Amount + Closing Balance (Saldo)
                 let bankId;
                 if (idIdx !== -1 && columns[idIdx]) {
                     bankId = columns[idIdx];
                 } else {
                     const rawId = `${date}_${amount}_${balance}`;
-                    // Use the full string to avoid any theoretical collision risk
                     bankId = `bank_${btoa(unescape(encodeURIComponent(rawId)))}`;
                 }
 
-                // Check if already in Firebase
-                const exists = transactions.some(t => t.bankId === bankId);
-                if (exists) continue;
-
-                // Matching logic
-                const candidates = transactions.filter(t =>
-                    !t.verified &&
-                    Math.abs(t.amount - amount) < 0.01 &&
-                    (t.type === 'PAYMENT' || t.type === 'ADVANCE')
-                );
-
-                // Strict Match: only pair if name/bizum is in description
-                let matchedTx = null;
-                if (candidates.length > 0) {
-                    matchedTx = candidates.find(t => {
-                        const member = members.find(m => m.id === t.memberId);
-                        const namesToMatch = [member?.name, member?.bizum].filter(Boolean);
-                        return namesToMatch.some(name =>
-                            desc.toLowerCase().includes(name.toLowerCase())
-                        );
-                    });
-                }
-
-                newMovements.push({
-                    bankId,
-                    amount,
-                    description: desc,
-                    date,
-                    matchedId: matchedTx?.id || null,
-                    matchedMember: matchedTx ? members.find(m => m.id === matchedTx.memberId)?.name : null,
-                    confidence: matchedTx ? (() => {
-                        const m = members.find(mem => mem.id === matchedTx.memberId);
-                        const matchTerm = m?.bizum || m?.name || '';
-                        return desc.toLowerCase().includes(matchTerm.toLowerCase()) ? 'high' : 'medium';
-                    })() : 'none'
-                });
+                allBankMovements.push({ bankId, amount, description: rawDesc, date });
             }
 
-            setBankMovements(newMovements);
+            // 2. Iterate through App transactions that need verification
+            const pendingAppTxs = transactions.filter(t =>
+                !t.verified &&
+                (t.type === 'PAYMENT' || t.type === 'ADVANCE')
+            );
+
+            const reconciliationItems = pendingAppTxs.map(tx => {
+                const member = members.find(m => m.id === tx.memberId);
+                const namesToMatch = [member?.name, member?.bizum].filter(Boolean);
+
+                // Find candidate matches in the bank list
+                const match = allBankMovements.find(move => {
+                    const amountMatch = Math.abs(tx.amount - move.amount) < 0.01;
+                    const nameMatch = namesToMatch.some(name =>
+                        move.description.toLowerCase().includes(name.toLowerCase())
+                    );
+                    // Check if this bank movement is already linked in Firebase (to avoid double match)
+                    const alreadyLinked = transactions.some(t => t.bankId === move.bankId);
+
+                    return amountMatch && nameMatch && !alreadyLinked;
+                });
+
+                // Clean bank description if there's a match
+                let cleanBankDesc = '';
+                if (match) {
+                    const desc = match.description;
+                    const lowerDesc = desc.toLowerCase();
+                    let matchIndex = -1;
+
+                    for (const name of namesToMatch) {
+                        const idx = lowerDesc.indexOf(name.toLowerCase());
+                        if (idx !== -1 && (matchIndex === -1 || idx < matchIndex)) {
+                            matchIndex = idx;
+                        }
+                    }
+
+                    cleanBankDesc = matchIndex !== -1 ? desc.substring(matchIndex) : desc;
+                }
+
+                return {
+                    appTx: tx,
+                    memberName: member?.name || 'Unknown',
+                    bankMatch: match || null,
+                    cleanBankDesc,
+                    confidence: match ? 'high' : 'none'
+                };
+            });
+
+            setBankMovements(reconciliationItems);
             setIsProcessing(false);
-            if (newMovements.length === 0) {
-                showToast('No se encontraron transacciones nuevas para conciliar');
+            if (reconciliationItems.length === 0) {
+                showToast('No hay pagos pendientes de verificar');
             }
         };
         reader.readAsText(file);
     };
 
-    const verifyMatched = async (move) => {
-        if (!move.matchedId) return;
-        await updateTransaction(move.matchedId, {
+    const verifyMatched = async (item) => {
+        if (!item.bankMatch) return;
+        await updateTransaction(item.appTx.id, {
             verified: true,
-            bankId: move.bankId
+            bankId: item.bankMatch.bankId
         });
-        setBankMovements(prev => prev.filter(m => m.bankId !== move.bankId));
+        setBankMovements(prev => prev.filter(m => m.appTx.id !== item.appTx.id));
         showToast('Transacción verificada y vinculada');
     };
 
-    const handleManualSelect = async (move, txId) => {
-        await updateTransaction(txId, {
-            verified: true,
-            bankId: move.bankId
-        });
-        setBankMovements(prev => prev.filter(m => m.bankId !== move.bankId));
-        setManualMatchMove(null);
-        showToast('Transacción vinculada manualmente');
+    const handleManualSelect = async (item, txId) => {
+        // En este nuevo flujo, txId ya lo tenemos (item.appTx.id)
+        // Pero el modal de manual select ahora serviría para buscar un movimiento bancario si no se emparejó,
+        // o quizás simplemente mantener la lógica anterior pero adaptada.
+        // Dado el cambio de flujo, el "manual select" ahora debería permitir elegir un movimiento del CSV
+        // que no se haya emparejado automáticamente.
     };
 
     const verifyAllMatches = async () => {
-        const matches = bankMovements.filter(m => m.matchedId && m.confidence === 'high');
+        const matches = bankMovements.filter(m => m.bankMatch && m.confidence === 'high');
         for (const m of matches) {
-            await updateTransaction(m.matchedId, {
+            await updateTransaction(m.appTx.id, {
                 verified: true,
-                bankId: m.bankId
+                bankId: m.bankMatch.bankId
             });
         }
-        setBankMovements(prev => prev.filter(m => !(m.matchedId && m.confidence === 'high')));
+        setBankMovements(prev => prev.filter(m => !(m.bankMatch && m.confidence === 'high')));
         showToast(`${matches.length} transacciones verificadas con alta confianza`);
     };
 
@@ -321,35 +327,35 @@ export default function Admin() {
                             </button>
                         </div>
 
-                        {bankMovements.map(move => (
-                            <div key={move.bankId} className="reconciliation-card">
-                                {/* Left Side: Bank Record */}
-                                <div className="recon-side bank">
-                                    <div className="recon-badge bank">BANCO</div>
-                                    <div className="recon-date">{move.date?.split(' ')[0]}</div>
-                                    <div className="recon-desc">{move.description}</div>
-                                    <div className="recon-amount">{move.amount.toFixed(2)}€</div>
+                        {bankMovements.map(item => (
+                            <div key={item.appTx.id} className="reconciliation-card">
+                                {/* Left Side: App Record */}
+                                <div className="recon-side app high">
+                                    <div className="recon-badge app">APP</div>
+                                    <div className="recon-date">{new Date(item.appTx.timestamp).toLocaleDateString([], { day: '2-digit', month: '2-digit' })}</div>
+                                    <div className="recon-match-name">{item.memberName}</div>
+                                    <div className="recon-amount">{item.appTx.amount.toFixed(2)}€</div>
                                 </div>
 
                                 {/* Divider with Icon */}
                                 <div className="recon-divider">
-                                    {move.confidence === 'high' ? (
+                                    {item.confidence === 'high' ? (
                                         <CheckCircleIcon className="recon-status-icon high" />
-                                    ) : move.confidence === 'medium' ? (
-                                        <ExclamationTriangleIcon className="recon-status-icon medium" />
                                     ) : (
-                                        <XCircleIcon className="recon-status-icon none" />
+                                        <ExclamationTriangleIcon className="recon-status-icon none" />
                                     )}
                                 </div>
 
-                                {/* Right Side: App Match */}
-                                <div className={`recon-side app ${move.confidence}`}>
-                                    <div className="recon-badge app">APP</div>
-                                    {move.matchedId ? (
+                                {/* Right Side: Bank Match */}
+                                <div className={`recon-side bank ${item.bankMatch ? 'high' : 'none'}`}>
+                                    <div className="recon-badge bank">BANCO</div>
+                                    {item.bankMatch ? (
                                         <>
-                                            <div className="recon-match-name">{move.matchedMember}</div>
+                                            <div className="recon-date">{item.bankMatch.date?.split(' ')[0]}</div>
+                                            <div className="recon-desc" style={{ fontWeight: 600 }}>{item.cleanBankDesc}</div>
+                                            <div className="recon-amount">{item.bankMatch.amount.toFixed(2)}€</div>
                                             <button
-                                                onClick={() => verifyMatched(move)}
+                                                onClick={() => verifyMatched(item)}
                                                 className="btn-verify-recon"
                                                 style={{ marginTop: '0.5rem' }}
                                             >
@@ -358,13 +364,8 @@ export default function Admin() {
                                         </>
                                     ) : (
                                         <div className="recon-no-match">
-                                            <span>Sin coincidencia</span>
-                                            <button
-                                                onClick={() => setManualMatchMove(move)}
-                                                className="btn-manual-recon"
-                                            >
-                                                Vincular Manual
-                                            </button>
+                                            <span>No encontrado en extracto</span>
+                                            {/* Aquí podríamos añadir lógica para buscar manualmente si es necesario */}
                                         </div>
                                     )}
                                 </div>
