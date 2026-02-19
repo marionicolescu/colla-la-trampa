@@ -332,62 +332,54 @@ export default function Admin() {
                             const appDateStr = appDate.toLocaleDateString([], { day: '2-digit', month: '2-digit' });
                             const appTimeStr = appDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-                            // Bank date: usually CSV has a string. We try to keep it consistent.
-                            // Revolut format is often YYYY-MM-DD HH:mm:ss
                             let bankDateStr = '-';
                             let bankTimeStr = '-';
                             if (item.bankMatch?.date) {
                                 const parts = item.bankMatch.date.split(' ');
                                 if (parts.length >= 1) {
-                                    // Try to format date as dd/mm if it's yyyy-mm-dd
                                     const dParts = parts[0].split('-');
                                     if (dParts.length === 3) bankDateStr = `${dParts[2]}/${dParts[1]}`;
                                     else bankDateStr = parts[0];
                                 }
                                 if (parts.length >= 2) {
-                                    bankTimeStr = parts[1].substring(0, 5); // HH:mm
+                                    bankTimeStr = parts[1].substring(0, 5);
                                 }
                             }
 
                             return (
-                                <div key={item.appTx.id} className="reconciliation-card">
+                                <div key={item.appTx.id} className="reconciliation-card compact">
                                     {/* Left Side: App Record */}
                                     <div className={`recon-side app ${item.confidence === 'high' ? 'high' : 'none'}`}>
                                         <div className="recon-badge">APP</div>
-                                        <div className="recon-date-time">
-                                            <span className="date">{appDateStr}</span>
-                                            <span className="time">{appTimeStr}</span>
+                                        <div className="recon-date-time-row">
+                                            <span>{appDateStr}</span>
+                                            <span className="separator">•</span>
+                                            <span className="time-dim">{appTimeStr}</span>
                                         </div>
                                         <div className="recon-main-text">{item.memberName}</div>
                                         <div className="recon-amount">{item.appTx.amount.toFixed(2)}€</div>
                                     </div>
 
-                                    {/* Center: Status & Action */}
-                                    <div className="recon-center">
-                                        <div className="recon-divider-icon">
-                                            {item.confidence === 'high' ? (
-                                                <CheckCircleIcon className="recon-status-icon high" />
-                                            ) : (
-                                                <ExclamationTriangleIcon className="recon-status-icon none" />
-                                            )}
-                                        </div>
-                                        {item.bankMatch && (
+                                    {/* Center: Action Overlay */}
+                                    {item.bankMatch && (
+                                        <div className="recon-action-overlay">
                                             <button
                                                 onClick={() => verifyMatched(item)}
-                                                className="btn-confirm-center"
+                                                className={`btn-confirm-icon ${item.confidence === 'high' ? 'high' : ''}`}
                                                 title="Confirmar Transacción"
                                             >
-                                                Confirmar
+                                                <CheckCircleIcon />
                                             </button>
-                                        )}
-                                    </div>
+                                        </div>
+                                    )}
 
                                     {/* Right Side: Bank Match */}
                                     <div className={`recon-side bank ${item.bankMatch ? 'high' : 'none'}`}>
                                         <div className="recon-badge">BANCO</div>
-                                        <div className="recon-date-time">
-                                            <span className="date">{bankDateStr}</span>
-                                            <span className="time">{bankTimeStr}</span>
+                                        <div className="recon-date-time-row">
+                                            <span>{bankDateStr}</span>
+                                            <span className="separator">•</span>
+                                            <span className="time-dim">{bankTimeStr}</span>
                                         </div>
                                         <div className="recon-main-text" title={item.bankMatch?.description}>
                                             {item.bankMatch ? item.cleanBankDesc : 'No encontrado'}
