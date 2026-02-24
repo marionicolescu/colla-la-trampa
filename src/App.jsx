@@ -36,10 +36,10 @@ function AppContent() {
           type: 'CONSUMPTION',
           amount: product.price, // Assuming QR scans are non-guests for now
           memberId: currentUser.id,
-          description: `1x ${product.name} (Escaneo QR)`,
+          description: `1x ${product.name} (QR)`,
           isGuest: false
         });
-        showToast(`1 ${product.icon} añadido`);
+        showToast(`${product.icon}${product.name} añadido`);
       } else {
         showToast(`❌ Producto no encontrado en catálogo`, "error");
       }
