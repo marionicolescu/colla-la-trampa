@@ -189,15 +189,19 @@ export default function Admin() {
                 const pendingAppTxs = transactions.filter(t =>
                     !t.verified &&
                     (t.type === 'PAYMENT' || t.type === 'ADVANCE')
-                ).sort((a, b) => a.timestamp - b.timestamp);
+                );
 
-                // 3. Create all possible (App, Bank) match pairs with their time difference
-                const allPossiblePairs = [];
-                pendingAppTxs.forEach(tx => {
+                const claimedBankIds = new Set();
+
+                // 3. Build the reconciliation list with sequential duplicate-free matching
+                const reconciliationItems = pendingAppTxs.map(tx => {
                     const member = members.find(m => m.id === tx.memberId);
                     const namesToMatch = [member?.name, member?.bizum].filter(Boolean);
 
-                    allBankMovements.forEach(move => {
+                    // Find first unclaimed match
+                    const match = allBankMovements.find(move => {
+                        if (claimedBankIds.has(move.bankId)) return false;
+
                         const amountMatch = Math.abs(tx.amount - move.amount) < 0.01;
                         const nameMatch = namesToMatch.some(name => {
                             const n = name.trim().toLowerCase();
@@ -205,38 +209,12 @@ export default function Admin() {
                         });
                         const alreadyLinked = transactions.some(t => t.bankId === move.bankId);
 
-                        if (amountMatch && nameMatch && !alreadyLinked) {
-                            const timeDiff = move.timestamp ? Math.abs(tx.timestamp - move.timestamp) : Infinity;
-                            allPossiblePairs.push({ tx, move, timeDiff, member, namesToMatch });
-                        }
+                        return amountMatch && nameMatch && !alreadyLinked;
                     });
-                });
 
-                // 4. Sort all pairs by time difference (Ascending - closest first)
-                allPossiblePairs.sort((a, b) => a.timeDiff - b.timeDiff);
-
-                // 5. Greedily match pairs
-                const matchedAppIds = new Set();
-                const matchedBankIds = new Set();
-                const bestMatches = new Map(); // tx.id -> { move, namesToMatch }
-
-                allPossiblePairs.forEach(pair => {
-                    if (!matchedAppIds.has(pair.tx.id) && !matchedBankIds.has(pair.move.bankId)) {
-                        matchedAppIds.add(pair.tx.id);
-                        matchedBankIds.add(pair.move.bankId);
-                        bestMatches.set(pair.tx.id, {
-                            move: pair.move,
-                            namesToMatch: pair.namesToMatch
-                        });
+                    if (match) {
+                        claimedBankIds.add(match.bankId);
                     }
-                });
-
-                // 6. Build the final reconciliation list based on App TXs
-                const reconciliationItems = pendingAppTxs.map(tx => {
-                    const member = members.find(m => m.id === tx.memberId);
-                    const matchData = bestMatches.get(tx.id);
-                    const match = matchData?.move || null;
-                    const namesToMatch = matchData?.namesToMatch || [member?.name, member?.bizum].filter(Boolean);
 
                     // Clean bank description if there's a match
                     let cleanBankDesc = '';

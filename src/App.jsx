@@ -12,8 +12,42 @@ import Login from './views/Login';
 import Admin from './views/Admin';
 
 function AppContent() {
-  const { currentUser, notification, loadingAuth, loadingData, appSettings } = useApp();
+  const { currentUser, notification, loadingAuth, loadingData, appSettings, addTransaction, catalog, showToast } = useApp();
   const [activeTab, setActiveTab] = useState('home');
+
+  // Handle URL actions (like Quick Consume via QR)
+  React.useEffect(() => {
+    // Only proceed if data and auth have finished loading
+    if (loadingData || loadingAuth) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const action = params.get('action');
+    const productId = params.get('productId');
+
+    if (action === 'consume' && productId) {
+      // If user is not logged in, we let the normal flow show the Login screen.
+      // Once logged in, this effect will re-run because currentUser changes.
+      if (!currentUser) return;
+
+      const product = catalog.find(p => p.id === productId);
+
+      if (product) {
+        addTransaction({
+          type: 'CONSUMPTION',
+          amount: product.price, // Assuming QR scans are non-guests for now
+          memberId: currentUser.id,
+          description: `1x ${product.name} (Escaneo QR)`,
+          isGuest: false
+        });
+        showToast(`1 ${product.icon} añadido`);
+      } else {
+        showToast(`❌ Producto no encontrado en catálogo`, "error");
+      }
+
+      // Clean the URL so it doesn't trigger again on refresh
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [loadingData, loadingAuth, currentUser, catalog, addTransaction, showToast]);
 
   if (loadingAuth || loadingData) {
     return (
