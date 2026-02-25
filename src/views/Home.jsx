@@ -185,11 +185,11 @@ export default function Home() {
             {/* Pending Stats Row */}
             <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
                 <div className="card" style={{ flex: 1, textAlign: 'center', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)', padding: '1rem' }}>
-                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>Consumiciones</div>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>Consumiciones por pagar</div>
                     <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--danger)' }}>{fmt(totalDebt)}</div>
                 </div>
                 <div className="card" style={{ flex: 1, textAlign: 'center', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)', padding: '1rem' }}>
-                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>Por verificar</div>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>Pagos por verificar</div>
                     <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#F59E0B' }}>{fmt(systemPending)}</div>
                 </div>
             </div>
