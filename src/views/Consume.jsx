@@ -5,9 +5,10 @@ import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import { SUCCESS_SOUND_B64 } from '../utils/audioStore';
 
 export default function Consume() {
-    const { currentUser, addTransaction, showToast, catalog, toggleFavorite, updateAlcoholPortion } = useApp();
+    const { currentUser, appSettings, addTransaction, showToast, catalog, toggleFavorite, updateAlcoholPortion } = useApp();
     const [isGuest, setIsGuest] = useState(false);
     const [cart, setCart] = useState({});
+    const [showSettingsModal, setShowSettingsModal] = useState(false);
 
     // Slider state
     const currentPortion = currentUser?.alcoholPortion || 50;
@@ -28,7 +29,7 @@ export default function Consume() {
         if (!navigator.vibrate) return;
         if (type === 'light') navigator.vibrate(50);
         if (type === 'heavy') navigator.vibrate([50, 50, 50]);
-        if (type === 'success') navigator.vibrate([30, 50, 30, 50, 50]);
+        if (type === 'success') navigator.vibrate([50, 50, 50]); // Fuerte pero corta
     };
 
     const addToCart = (item) => {
@@ -57,15 +58,6 @@ export default function Consume() {
 
     const clearCart = () => setCart({});
 
-    // 1. Calculate price multiplier based on slider
-    const getMultiplier = () => {
-        if (currentPortion === 25) return 0.5;
-        if (currentPortion === 50) return 1.0;
-        if (currentPortion === 75) return 1.5;
-        if (currentPortion === 100) return 2.0;
-        return 1.0;
-    };
-
     const isAlcoholic = (category) => {
         if (!category) return false;
         const c = category.toLowerCase();
@@ -73,11 +65,21 @@ export default function Consume() {
     };
 
     const getCalculatedPrice = (item) => {
-        const basePrice = isGuest ? item.guestPrice : item.price;
         if (isAlcoholic(item.category)) {
-            return basePrice * getMultiplier();
+            // 1. Obtener precio base de la DB (price25, price50, etc.) o por defecto el genérico
+            const portionKey = 'price' + currentPortion;
+            const basePrice = item[portionKey] !== undefined ? item[portionKey] : (item.price || 0);
+
+            // 2. Obtener márgenes de app_settings
+            const marginMember = appSettings?.margenMiembrosCopas || 0;
+            const marginGuest = appSettings?.margenInvitadosCopas || 0;
+
+            // 3. Sumar el margen correspondiente
+            return basePrice + (isGuest ? marginGuest : marginMember);
         }
-        return basePrice;
+
+        // Si no es copa, funciona como antes (price o guestPrice estático de la DB)
+        return isGuest ? item.guestPrice : item.price;
     };
 
     const calculateTotal = () => {
@@ -163,8 +165,6 @@ export default function Consume() {
         const qty = cart[item.id] || 0;
         const isFav = favorites.includes(item.id);
         const calcPrice = getCalculatedPrice(item);
-        const originalPrice = isGuest ? item.guestPrice : item.price;
-        const priceChanged = calcPrice !== originalPrice;
 
         return (
             <div
@@ -256,7 +256,7 @@ export default function Consume() {
                     <div style={{
                         fontSize: '0.875rem',
                         fontWeight: 700,
-                        color: priceChanged ? 'var(--primary)' : 'var(--text-primary)'
+                        color: 'var(--text-primary)'
                     }}>
                         {calcPrice.toFixed(2)} €
                     </div>
@@ -293,13 +293,28 @@ export default function Consume() {
             color: 'var(--text-primary)',
             transition: 'padding-bottom 0.4s ease'
         }}>
-            <div className="header-container" style={{ marginBottom: '1rem' }}>
+            <div className="header-container" style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ margin: 0 }}>Consumir</h2>
+                <button
+                    onClick={() => setShowSettingsModal(true)}
+                    style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--text-secondary)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.25rem',
+                        fontSize: '0.875rem',
+                        fontWeight: 600
+                    }}
+                >
+                    <BeakerIcon style={{ width: '1.25rem' }} /> Ajustar Copa
+                </button>
             </div>
 
-            {/* Top Bar: Guest Toggle & Alcohol Slider */}
+            {/* Top Bar: Guest Toggle */}
             <div className="card" style={{ marginBottom: '1.5rem', padding: '1rem', backgroundColor: 'var(--bg-surface)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>Modo Invitado</span>
                     <label className="switch">
                         <input
@@ -313,43 +328,70 @@ export default function Consume() {
                         <span className="slider-toggle"></span>
                     </label>
                 </div>
+            </div>
 
-                <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, fontSize: '0.875rem' }}>
-                            <BeakerIcon style={{ width: '1rem', color: 'var(--primary)' }} />
-                            Contenido de Alcohol
-                        </span>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 700, color: 'var(--primary)' }}>
-                            {currentPortion}ml
-                        </span>
-                    </div>
-
-                    <div style={{ margin: '1rem 0 0.5rem' }}>
-                        <input
-                            type="range"
-                            min="25"
-                            max="100"
-                            step="25"
-                            value={currentPortion}
-                            onChange={(e) => {
-                                triggerHaptic('light');
-                                updateAlcoholPortion(Number(e.target.value));
-                            }}
-                            style={{
-                                width: '100%',
-                                accentColor: 'var(--primary)'
-                            }}
-                        />
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '0.5rem', padding: '0 0.2rem' }}>
-                            <span>25</span>
-                            <span>50 (Std)</span>
-                            <span>75</span>
-                            <span>100</span>
+            {/* Slider Settings Modal */}
+            {showSettingsModal && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.6)',
+                    backdropFilter: 'blur(4px)',
+                    zIndex: 9999,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '1.5rem',
+                    animation: 'fadeIn 0.2s ease-out'
+                }}>
+                    <div className="card" style={{ width: '100%', maxWidth: '350px', backgroundColor: 'var(--bg-card)', padding: '1.5rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                            <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.2rem', color: 'var(--text-primary)' }}>
+                                <BeakerIcon style={{ width: '1.5rem', color: 'var(--primary)' }} />
+                                Cantidad de Alcohol
+                            </h3>
+                            <button
+                                onClick={() => setShowSettingsModal(false)}
+                                style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', fontSize: '1.5rem', cursor: 'pointer', padding: '0 0.5rem' }}
+                            >
+                                &times;
+                            </button>
                         </div>
+
+                        <div style={{ margin: '2rem 0 1rem' }}>
+                            <input
+                                type="range"
+                                min="25"
+                                max="100"
+                                step="25"
+                                value={currentPortion}
+                                onChange={(e) => {
+                                    triggerHaptic('light');
+                                    updateAlcoholPortion(Number(e.target.value));
+                                }}
+                                style={{
+                                    width: '100%',
+                                    accentColor: 'var(--primary)'
+                                }}
+                            />
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.75rem', fontWeight: 600 }}>
+                                <span style={{ color: currentPortion === 25 ? 'var(--primary)' : 'inherit' }}>25ml</span>
+                                <span style={{ color: currentPortion === 50 ? 'var(--primary)' : 'inherit' }}>50ml</span>
+                                <span style={{ color: currentPortion === 75 ? 'var(--primary)' : 'inherit' }}>75ml</span>
+                                <span style={{ color: currentPortion === 100 ? 'var(--primary)' : 'inherit' }}>100ml</span>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => setShowSettingsModal(false)}
+                            className="btn-primary"
+                            style={{ width: '100%', marginTop: '1rem' }}
+                        >
+                            Listo
+                        </button>
                     </div>
                 </div>
-            </div>
+            )}
 
             {/* Favorites Section */}
             {favItems.length > 0 && (
