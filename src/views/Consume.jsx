@@ -151,6 +151,13 @@ export default function Consume() {
         }, 500); // 500ms for long press
     };
 
+    const handleTouchMove = () => {
+        // If the user moves their finger (scrolls), cancel the long press
+        if (longPressTimer.current) {
+            clearTimeout(longPressTimer.current);
+        }
+    };
+
     const handleTouchEnd = () => {
         if (longPressTimer.current) {
             clearTimeout(longPressTimer.current);
@@ -172,10 +179,12 @@ export default function Consume() {
                 className="card"
                 onClick={() => addToCart(item)}
                 onTouchStart={() => handleTouchStart(item)}
+                onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
                 onMouseDown={() => handleMouseDown(item)}
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseLeave}
+                onContextMenu={(e) => e.preventDefault()} // Disable context menu completely on the card
                 style={{
                     cursor: 'pointer',
                     display: 'flex',
@@ -241,7 +250,8 @@ export default function Consume() {
                                 height: '100%',
                                 objectFit: 'contain',
                                 padding: '0.2rem',
-                                borderRadius: '0.5rem'
+                                borderRadius: '0.5rem',
+                                pointerEvents: 'none' // Evita que se pueda interactuar con la imagen (como arrastrarla o menú de guardado)
                             }}
                             draggable="false"
                         />
