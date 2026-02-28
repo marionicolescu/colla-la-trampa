@@ -215,9 +215,9 @@ export default function Consume() {
 
                 {/* Product Media */}
                 <div style={{
-                    width: '4.5rem',
-                    height: '4.5rem',
-                    marginBottom: '0.75rem',
+                    width: '6.5rem',
+                    height: '6.5rem',
+                    marginBottom: '0.5rem',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
