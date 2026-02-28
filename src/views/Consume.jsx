@@ -239,7 +239,8 @@ export default function Consume() {
                             style={{
                                 width: '100%',
                                 height: '100%',
-                                objectFit: 'cover',
+                                objectFit: 'contain',
+                                padding: '0.2rem',
                                 borderRadius: '0.5rem'
                             }}
                             draggable="false"
@@ -293,8 +294,8 @@ export default function Consume() {
             color: 'var(--text-primary)',
             transition: 'padding-bottom 0.4s ease'
         }}>
-            <div className="header-container" style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={{ margin: 0 }}>Consumir</h2>
+            <div className="header-container" style={{ marginBottom: '1rem', display: 'flex', position: 'relative', justifyContent: 'center', alignItems: 'center' }}>
+                <h2 style={{ margin: 0, textAlign: 'center' }}>Consumir</h2>
                 <button
                     onClick={() => setShowSettingsModal(true)}
                     style={{
@@ -303,12 +304,14 @@ export default function Consume() {
                         color: 'var(--text-secondary)',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '0.25rem',
-                        fontSize: '0.875rem',
-                        fontWeight: 600
+                        justifyContent: 'center',
+                        position: 'absolute',
+                        right: 0,
+                        padding: '0.5rem',
+                        cursor: 'pointer'
                     }}
                 >
-                    <BeakerIcon style={{ width: '1.25rem' }} /> Ajustar Copa
+                    <BeakerIcon style={{ width: '1.75rem' }} />
                 </button>
             </div>
 
@@ -382,13 +385,6 @@ export default function Consume() {
                             </div>
                         </div>
 
-                        <button
-                            onClick={() => setShowSettingsModal(false)}
-                            className="btn-primary"
-                            style={{ width: '100%', marginTop: '1rem' }}
-                        >
-                            Listo
-                        </button>
                     </div>
                 </div>
             )}
