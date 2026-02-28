@@ -10,7 +10,7 @@ const CATALOG_ICONS = {
 };
 
 export default function Statistics() {
-    const { transactions, members, currentUser } = useApp();
+    const { transactions, members, currentUser, catalog } = useApp();
     const [rangeType, setRangeType] = useState('TOTAL'); // TOTAL, MONTH, WEEK, CUSTOM
 
     // Initialize custom dates with saved data or default (today-15 to today)
@@ -97,7 +97,11 @@ export default function Statistics() {
                     const match = part.match(/(\d+)x (.+)/);
                     if (match) {
                         const qty = parseInt(match[1]);
-                        const itemName = match[2];
+                        let itemName = match[2];
+
+                        // Strip portion suffix (e.g. " (50ml)") and " (Invitado)" tag
+                        itemName = itemName.replace(/\s\(\d+ml\)$/, '').replace(/\s\(Invitado\)$/, '');
+
                         memberStats[t.memberId].breakdown[itemName] = (memberStats[t.memberId].breakdown[itemName] || 0) + qty;
                     }
                 });
@@ -276,11 +280,12 @@ export default function Statistics() {
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    backgroundColor: member.rank <= 3 ? 'rgba(255,255,255,0.6)' : '#F3F4F6',
+                                    backgroundColor: member.rank <= 3 ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.1)',
                                     fontWeight: 800,
                                     fontSize: '1rem',
                                     color: rankStyle.color,
-                                    position: 'relative'
+                                    position: 'relative',
+                                    border: member.rank <= 3 ? 'none' : '1px solid var(--border)'
                                 }}>
                                     {member.rank}
                                 </div>
@@ -334,40 +339,70 @@ export default function Statistics() {
 
                         {/* Grid Breakdown */}
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
-                            {Object.entries(selectedMemberData.breakdown).map(([name, qty]) => (
-                                <div key={name} className="card" style={{
-                                    padding: '1.25rem',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    position: 'relative',
-                                    border: '1px solid var(--border)',
-                                    background: 'var(--bg-app)',
-                                    borderRadius: '1.25rem'
-                                }}>
-                                    <div style={{ fontSize: '2.25rem', marginBottom: '0.5rem' }}>{CATALOG_ICONS[name] || '🥤'}</div>
-                                    <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-primary)' }}>{name}</div>
-                                    <div style={{
-                                        position: 'absolute',
-                                        top: '-0.375rem',
-                                        right: '-0.375rem',
-                                        backgroundColor: 'var(--primary)',
-                                        color: 'white',
-                                        minWidth: '1.75rem',
-                                        height: '1.75rem',
-                                        borderRadius: '50%',
+                            {Object.entries(selectedMemberData.breakdown).map(([name, qty]) => {
+                                // Find the product in the catalog to get the imageUrl
+                                const product = catalog.find(p => p.name === name);
+                                const imageUrl = product?.imageUrl;
+
+                                return (
+                                    <div key={name} className="card" style={{
+                                        padding: '1.25rem',
                                         display: 'flex',
+                                        flexDirection: 'column',
                                         alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontSize: '0.8125rem',
-                                        fontWeight: 800,
-                                        padding: '0 4px',
-                                        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'
+                                        position: 'relative',
+                                        border: '1px solid var(--border)',
+                                        background: 'var(--bg-app)',
+                                        borderRadius: '1.25rem',
+                                        minHeight: '100px',
+                                        justifyContent: 'center'
                                     }}>
-                                        {qty}
+                                        <div style={{
+                                            width: '3.5rem',
+                                            height: '3.5rem',
+                                            marginBottom: '0.5rem',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center'
+                                        }}>
+                                            {imageUrl ? (
+                                                <img
+                                                    src={imageUrl}
+                                                    alt={name}
+                                                    style={{
+                                                        width: '100%',
+                                                        height: '100%',
+                                                        objectFit: 'contain',
+                                                        borderRadius: '0.5rem'
+                                                    }}
+                                                />
+                                            ) : (
+                                                <div style={{ fontSize: '2.25rem' }}>{CATALOG_ICONS[name] || '🥤'}</div>
+                                            )}
+                                        </div>
+                                        <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-primary)', textAlign: 'center' }}>{name}</div>
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: '-0.375rem',
+                                            right: '-0.375rem',
+                                            backgroundColor: 'var(--primary)',
+                                            color: 'white',
+                                            minWidth: '1.75rem',
+                                            height: '1.75rem',
+                                            borderRadius: '50%',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '0.8125rem',
+                                            fontWeight: 800,
+                                            padding: '0 4px',
+                                            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'
+                                        }}>
+                                            {qty}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                             {Object.keys(selectedMemberData.breakdown).length === 0 && (
                                 <div style={{ gridColumn: 'span 2', textAlign: 'center', padding: '2.5rem', color: '#9CA3AF', background: '#F9FAFB', borderRadius: '1.25rem', fontSize: '0.875rem' }}>
                                     No hay consumos registrados

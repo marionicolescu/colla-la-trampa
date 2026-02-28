@@ -65,6 +65,7 @@ export default function Consume() {
     };
 
     const getCalculatedPrice = (item) => {
+        const guestMode = item.isGuestOverride !== undefined ? item.isGuestOverride : isGuest;
         if (isAlcoholic(item.category)) {
             // 1. Obtener precio base de la DB (price25, price50, etc.) o por defecto el genérico
             const portionKey = 'price' + currentPortion;
@@ -75,11 +76,11 @@ export default function Consume() {
             const marginGuest = appSettings?.margenInvitadosCopas || 0;
 
             // 3. Sumar el margen correspondiente
-            return basePrice + (isGuest ? marginGuest : marginMember);
+            return basePrice + (guestMode ? marginGuest : marginMember);
         }
 
         // Si no es copa, funciona como antes (price o guestPrice estático de la DB)
-        return isGuest ? item.guestPrice : item.price;
+        return guestMode ? item.guestPrice : item.price;
     };
 
     const calculateTotal = () => {
@@ -264,11 +265,7 @@ export default function Consume() {
                 </div>
 
                 <div className="price-stack" style={{ marginTop: '0.5rem' }}>
-                    <div style={{
-                        fontSize: '0.875rem',
-                        fontWeight: 700,
-                        color: 'var(--text-primary)'
-                    }}>
+                    <div className={`price-display ${isGuest ? 'guest-active' : ''}`}>
                         {calcPrice.toFixed(2)} €
                     </div>
                 </div>
@@ -311,7 +308,7 @@ export default function Consume() {
                     style={{
                         background: 'none',
                         border: 'none',
-                        color: 'var(--text-secondary)',
+                        color: 'var(--primary)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -356,8 +353,8 @@ export default function Consume() {
                     justifyContent: 'center',
                     padding: '1.5rem',
                     animation: 'fadeIn 0.2s ease-out'
-                }}>
-                    <div className="card" style={{ width: '100%', maxWidth: '350px', backgroundColor: 'var(--bg-card)', padding: '1.5rem' }}>
+                }} onClick={() => setShowSettingsModal(false)}>
+                    <div className="card" style={{ width: '100%', maxWidth: '350px', backgroundColor: 'var(--bg-card)', padding: '1.5rem' }} onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                             <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.2rem', color: 'var(--text-primary)' }}>
                                 <BeakerIcon style={{ width: '1.5rem', color: 'var(--primary)' }} />
@@ -441,6 +438,25 @@ export default function Consume() {
                     Apuntar ({total.toFixed(2)} €)
                 </button>
             </div>
+            <style>{`
+                .price-display {
+                    font-size: 0.875rem;
+                    font-weight: 700;
+                    color: var(--text-primary);
+                    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+                }
+                .price-display.guest-active {
+                    color: var(--primary);
+                    font-size: 1rem;
+                    font-weight: 800;
+                    transform: scale(1.05);
+                    text-shadow: 0 0 15px rgba(236, 43, 120, 0.2);
+                }
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+            `}</style>
         </div>
     );
 }
