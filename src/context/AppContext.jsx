@@ -293,6 +293,57 @@ export const AppProvider = ({ children }) => {
         }
     };
 
+    // --- User Preferences ---
+
+    const toggleFavorite = async (productId) => {
+        if (!currentUser) return;
+
+        // Find the full member document to get current favorites
+        const member = members.find(m => m.id === currentUser.id);
+        if (!member) return;
+
+        const currentFavs = member.favoriteProducts || [];
+        const isFav = currentFavs.includes(productId);
+
+        let newFavs;
+        if (isFav) {
+            newFavs = currentFavs.filter(id => id !== productId);
+        } else {
+            newFavs = [...currentFavs, productId];
+        }
+
+        try {
+            // Find the document ID. In Firebase, we stored docs with auto IDs or specific IDs.
+            // But we stored them in "members" collection. We need to find the correct doc reference.
+            // Since we only have member.id (number), we need to query or assuming doc.id is stringified member.id.
+            // Let's assume the document ID is what we get from the snapshot.
+            // Actually, in the onSnapshot for members, we didn't save the document's real doc.id.
+            // Wait, we did: `snap.forEach(doc => mlist.push({ ...doc.data(), id: Number(doc.id) }));`
+            // So if `member.id` is the `doc.id` cast to a number, we can use `String(currentUser.id)`.
+            // BUT wait, it might be a random alphanumeric ID. Let's just do a query to be safe, or just use string.
+            // If the ID was "1", it became Number("1") === 1.
+            const docId = String(currentUser.id);
+            await updateDoc(doc(db, "members", docId), {
+                favoriteProducts: newFavs
+            });
+            // We don't need to show toast, we'll use haptic feedback in the component.
+        } catch (error) {
+            showToast(`Error guardando favorito: ${error.message}`);
+        }
+    };
+
+    const updateAlcoholPortion = async (portion) => {
+        if (!currentUser) return;
+        const docId = String(currentUser.id);
+        try {
+            await updateDoc(doc(db, "members", docId), {
+                alcoholPortion: portion
+            });
+        } catch (error) {
+            showToast(`Error guardando preferencia: ${error.message}`);
+        }
+    };
+
 
     const value = {
         members,
@@ -318,7 +369,9 @@ export const AppProvider = ({ children }) => {
         deleteTransaction,
         updateTransaction,
         toggleVerification,
-        updateAppSettings
+        updateAppSettings,
+        toggleFavorite,
+        updateAlcoholPortion
     }; return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
