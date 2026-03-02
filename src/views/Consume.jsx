@@ -130,10 +130,10 @@ export default function Consume() {
     const favorites = currentUser?.favoriteProducts || [];
 
     // Derived Data
-    const favItems = catalog.filter(item => favorites.includes(item.id));
+    const favItems = catalog.filter(item => favorites.includes(item.id) && !item.disabled);
 
     // Group remaining (or all) items by category
-    const groupedCatalog = catalog.reduce((acc, item) => {
+    const groupedCatalog = catalog.filter(item => !item.disabled).reduce((acc, item) => {
         const cat = item.category || 'Otros';
         if (!acc[cat]) acc[cat] = [];
         acc[cat].push(item);
