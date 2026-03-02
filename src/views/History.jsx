@@ -24,7 +24,7 @@ export default function History() {
         // Filtro por Miembro
         let memberMatch = true;
         if (memberFilter !== 'ALL') {
-            memberMatch = t.memberId === memberFilter;
+            memberMatch = String(t.memberId) === String(memberFilter);
         }
 
         return typeMatch && memberMatch;
@@ -276,17 +276,29 @@ export default function History() {
                 {sorted.length > displayCount && (
                     <button
                         onClick={() => setDisplayCount(prev => prev + 20)}
-                        className="btn-secondary"
                         style={{
-                            width: '100%',
-                            marginTop: '1rem',
-                            padding: '0.5rem',
-                            fontWeight: 800,
-                            fontSize: '1.5rem',
+                            width: '3.5rem',
+                            height: '3.5rem',
+                            borderRadius: '50%',
+                            backgroundColor: '#EC2B78', // Fuchsia / Primary color
+                            color: 'white',
+                            border: 'none',
                             display: 'flex',
                             justifyContent: 'center',
-                            alignItems: 'center'
+                            alignItems: 'center',
+                            fontSize: '2rem',
+                            fontWeight: 300,
+                            margin: '1rem auto 2rem auto',
+                            cursor: 'pointer',
+                            boxShadow: '0 4px 12px rgba(236, 43, 120, 0.4)',
+                            transition: 'transform 0.2s',
+                            WebkitTapHighlightColor: 'transparent'
                         }}
+                        onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.9)'}
+                        onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                        onTouchStart={(e) => e.currentTarget.style.transform = 'scale(0.9)'}
+                        onTouchEnd={(e) => e.currentTarget.style.transform = 'scale(1)'}
                         aria-label="Cargar más"
                     >
                         +
