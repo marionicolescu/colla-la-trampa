@@ -11,16 +11,58 @@ import {
 export default function History() {
     const { transactions, members, showToast } = useApp();
     const [filter, setFilter] = useState('ALL'); // ALL, CONSUMPTION, PAYMENT, PURCHASE_BOTE
+    const [memberFilter, setMemberFilter] = useState('ALL');
+    const [displayCount, setDisplayCount] = useState(20);
 
     const filtered = transactions.filter(t => {
-        if (filter === 'ALL') return true;
-        if (filter === 'CONSUMPTION') return t.type === 'CONSUMPTION';
-        if (filter === 'PAYMENT') return t.type === 'PAYMENT' || t.type === 'ADVANCE';
-        if (filter === 'PURCHASE') return t.type === 'PURCHASE_BOTE';
-        return true;
+        // Tipo de Transacción
+        let typeMatch = true;
+        if (filter === 'CONSUMPTION') typeMatch = t.type === 'CONSUMPTION';
+        if (filter === 'PAYMENT') typeMatch = t.type === 'PAYMENT' || t.type === 'ADVANCE';
+        if (filter === 'PURCHASE') typeMatch = t.type === 'PURCHASE_BOTE';
+
+        // Filtro por Miembro
+        let memberMatch = true;
+        if (memberFilter !== 'ALL') {
+            memberMatch = t.memberId === memberFilter;
+        }
+
+        return typeMatch && memberMatch;
     });
 
     const sorted = [...filtered].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    const displayedTransactions = sorted.slice(0, displayCount);
+
+    // Agrupación por días
+    const groupedTransactions = displayedTransactions.reduce((acc, t) => {
+        const date = new Date(t.timestamp);
+
+        // Función auxiliar para saber si es hoy o ayer
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        let dateKey = date.toLocaleDateString();
+
+        if (date.toDateString() === today.toDateString()) {
+            dateKey = 'Hoy';
+        } else if (date.toDateString() === yesterday.toDateString()) {
+            dateKey = 'Ayer';
+        } else {
+            // Formatear como "15 de Agosto"
+            dateKey = date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
+            // Capitalizar la primera letra del mes
+            const parts = dateKey.split(' ');
+            if (parts.length === 3) {
+                parts[2] = parts[2].charAt(0).toUpperCase() + parts[2].slice(1);
+                dateKey = parts.join(' ');
+            }
+        }
+
+        if (!acc[dateKey]) acc[dateKey] = [];
+        acc[dateKey].push(t);
+        return acc;
+    }, {});
 
     const getDetails = (t) => {
         const member = members.find(m => m.id === t.memberId);
@@ -65,8 +107,35 @@ export default function History() {
     };
 
     return (
-        <div className="container" style={{ minHeight: '100vh' }}>
+        <div className="container" style={{ minHeight: '100vh', paddingBottom: '3rem' }}>
             <h2 style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--text-primary)' }}>Historial</h2>
+
+            {/* Filtro de Miembro */}
+            <div style={{ marginBottom: '1rem' }}>
+                <select
+                    value={memberFilter}
+                    onChange={(e) => {
+                        setMemberFilter(e.target.value);
+                        setDisplayCount(20); // Resetear paginación al filtrar
+                    }}
+                    style={{
+                        width: '100%',
+                        padding: '0.75rem',
+                        borderRadius: '0.75rem',
+                        border: '1px solid var(--border)',
+                        backgroundColor: 'var(--bg-card)',
+                        color: 'var(--text-primary)',
+                        fontSize: '0.9rem',
+                        outline: 'none',
+                        appearance: 'none'
+                    }}
+                >
+                    <option value="ALL">Todos los miembros</option>
+                    {members.map(m => (
+                        <option key={m.id} value={m.id}>{m.name}</option>
+                    ))}
+                </select>
+            </div>
 
             <div className="segmented-control-wrapper">
                 <div className="segmented-control">
@@ -95,89 +164,134 @@ export default function History() {
             </div>
 
             <div className="flex flex-col gap-sm">
-                {sorted.map(t => {
-                    const { title, icon, amountClass, amountSign, borderColor } = getDetails(t);
-                    const date = new Date(t.timestamp);
-                    const dateStr = date.toLocaleDateString() + ' · ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-                    return (
-                        <div key={t.id} className="card flex items-center gap-sm" style={{
-                            borderLeft: `4px solid ${borderColor}`,
-                            padding: '0.75rem 0.5rem 0.75rem 0.75rem',
-                            backgroundColor: 'var(--bg-surface)',
-                            border: '1px solid var(--border)',
-                            borderLeftWidth: '4px',
-                            position: 'relative'
+                {Object.keys(groupedTransactions).map((dateKey) => (
+                    <div key={dateKey} style={{ marginBottom: '1rem' }}>
+                        <div style={{
+                            fontSize: '0.75rem',
+                            fontWeight: 700,
+                            color: 'var(--text-secondary)',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.05em',
+                            padding: '0.5rem 0 0.5rem 0.5rem',
+                            borderBottom: '1px solid var(--border)',
+                            marginBottom: '0.75rem'
                         }}>
-                            <div style={{
-                                position: 'absolute',
-                                top: '0.4rem',
-                                right: '0.4rem',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.25rem',
-                                zIndex: 1
-                            }}>
-                                {t.verified !== undefined && (
-                                    <div style={{
-                                        fontSize: '0.75rem',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center'
-                                    }} title={t.verified ? 'Verificada' : 'Sin verificar'}>
-                                        {t.verified ? (
-                                            <span style={{ color: '#10B981' }}>✓</span>
-                                        ) : (
-                                            <span style={{ color: '#F59E0B' }}>⌛</span>
-                                        )}
-                                    </div>
-                                )}
-
-                                {t.transactionId && (
-                                    <div
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            navigator.clipboard.writeText(t.transactionId);
-                                            showToast('ID copiado: ' + t.transactionId);
-                                            e.currentTarget.style.backgroundColor = 'rgba(156, 163, 175, 0.3)';
-                                            setTimeout(() => {
-                                                if (e.currentTarget) e.currentTarget.style.backgroundColor = 'rgba(156, 163, 175, 0.1)';
-                                            }, 200);
-                                        }}
-                                        style={{
-                                            fontSize: '0.65rem',
-                                            fontFamily: 'monospace',
-                                            color: '#9CA3AF',
-                                            backgroundColor: 'rgba(156, 163, 175, 0.1)',
-                                            padding: '0.2rem 0.4rem',
-                                            borderRadius: '0.3rem',
-                                            letterSpacing: '0.01em',
-                                            fontWeight: 600,
-                                            cursor: 'pointer',
-                                            transition: 'background-color 0.2s',
-                                            webkitTapHighlightColor: 'transparent'
-                                        }}
-                                    >
-                                        {t.transactionId}
-                                    </div>
-                                )}
-                            </div>
-
-                            <div style={{ flexShrink: 0 }}>{icon}</div>
-                            <div style={{ flex: 1, minWidth: 0, paddingRight: '4.5rem' }}>
-                                <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</div>
-                                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                    {t.description || t.type}
-                                </div>
-                                <div style={{ fontSize: '0.7rem', color: '#9CA3AF' }}>{dateStr}</div>
-                            </div>
-                            <div className={amountClass} style={{ fontWeight: 'bold', fontSize: '1rem', flexShrink: 0 }}>
-                                {amountSign}{t.amount.toFixed(2)} €
-                            </div>
+                            {dateKey}
                         </div>
-                    );
-                })}
-                {sorted.length === 0 && <div style={{ textAlign: 'center', color: 'var(--text-secondary)', marginTop: '2rem' }}>No hay movimientos</div>}
+
+                        <div className="flex flex-col gap-sm">
+                            {groupedTransactions[dateKey].map(t => {
+                                const { title, icon, amountClass, amountSign, borderColor } = getDetails(t);
+                                const date = new Date(t.timestamp);
+                                const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                                return (
+                                    <div key={t.id} className="card flex items-center gap-sm" style={{
+                                        borderLeft: `4px solid ${borderColor}`,
+                                        padding: '0.75rem 0.5rem 0.75rem 0.75rem',
+                                        backgroundColor: 'var(--bg-surface)',
+                                        border: '1px solid var(--border)',
+                                        borderLeftWidth: '4px',
+                                        position: 'relative'
+                                    }}>
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: '0.4rem',
+                                            right: '0.4rem',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.25rem',
+                                            zIndex: 1
+                                        }}>
+                                            {t.verified !== undefined && (
+                                                <div style={{
+                                                    fontSize: '0.75rem',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center'
+                                                }} title={t.verified ? 'Verificada' : 'Sin verificar'}>
+                                                    {t.verified ? (
+                                                        <span style={{ color: '#10B981' }}>✓</span>
+                                                    ) : (
+                                                        <span style={{ color: '#F59E0B' }}>⌛</span>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {t.transactionId && (
+                                                <div
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        navigator.clipboard.writeText(t.transactionId);
+                                                        showToast('ID copiado: ' + t.transactionId);
+                                                        e.currentTarget.style.backgroundColor = 'rgba(156, 163, 175, 0.3)';
+                                                        setTimeout(() => {
+                                                            if (e.currentTarget) e.currentTarget.style.backgroundColor = 'rgba(156, 163, 175, 0.1)';
+                                                        }, 200);
+                                                    }}
+                                                    style={{
+                                                        fontSize: '0.65rem',
+                                                        fontFamily: 'monospace',
+                                                        color: '#9CA3AF',
+                                                        backgroundColor: 'rgba(156, 163, 175, 0.1)',
+                                                        padding: '0.2rem 0.4rem',
+                                                        borderRadius: '0.3rem',
+                                                        letterSpacing: '0.01em',
+                                                        fontWeight: 600,
+                                                        cursor: 'pointer',
+                                                        transition: 'background-color 0.2s',
+                                                        WebkitTapHighlightColor: 'transparent'
+                                                    }}
+                                                >
+                                                    {t.transactionId}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div style={{ flexShrink: 0 }}>{icon}</div>
+                                        <div style={{ flex: 1, minWidth: 0, paddingRight: '4.5rem' }}>
+                                            <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</div>
+                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                {t.description || t.type}
+                                            </div>
+                                            <div style={{ fontSize: '0.7rem', color: '#9CA3AF' }}>{timeStr}</div>
+                                        </div>
+                                        <div className={amountClass} style={{ fontWeight: 'bold', fontSize: '1rem', flexShrink: 0 }}>
+                                            {amountSign}{t.amount.toFixed(2)} €
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                ))}
+
+                {sorted.length === 0 && (
+                    <div style={{ textAlign: 'center', color: 'var(--text-secondary)', marginTop: '2rem' }}>
+                        No hay movimientos
+                    </div>
+                )}
+
+                {/* Botón Cargar Más */}
+                {sorted.length > displayCount && (
+                    <button
+                        onClick={() => setDisplayCount(prev => prev + 20)}
+                        className="btn-secondary"
+                        style={{
+                            width: '100%',
+                            marginTop: '1rem',
+                            padding: '0.5rem',
+                            fontWeight: 800,
+                            fontSize: '1.5rem',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center'
+                        }}
+                        aria-label="Cargar más"
+                    >
+                        +
+                    </button>
+                )}
             </div>
             <style>{`
                 .segmented-control-wrapper {
