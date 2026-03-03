@@ -166,6 +166,10 @@ export const AppProvider = ({ children }) => {
             if ((t.type === 'PAYMENT' || t.type === 'ADVANCE') && t.verified === true) {
                 pot += amount;
             }
+            // POT_INCOME counts as manual cash directly added to the pot
+            if (t.type === 'POT_INCOME') {
+                pot += amount;
+            }
             // PURCHASE_BOTE subtracts cash from the pot
             if (t.type === 'PURCHASE_BOTE') pot -= amount;
         });
@@ -216,10 +220,10 @@ export const AppProvider = ({ children }) => {
     const addTransaction = async (transaction) => {
         try {
             // Determine default verified status based on requirements:
-            // - CONSUMPTION and PURCHASE_BOTE -> true
+            // - CONSUMPTION, PURCHASE_BOTE, POT_INCOME -> true
             // - ADVANCE and PAYMENT -> false
             let verified = false;
-            if (transaction.type === 'CONSUMPTION' || transaction.type === 'PURCHASE_BOTE') {
+            if (transaction.type === 'CONSUMPTION' || transaction.type === 'PURCHASE_BOTE' || transaction.type === 'POT_INCOME') {
                 verified = true;
             }
 

@@ -80,6 +80,7 @@ export default function Home() {
         const filtered = transactions
             .filter(t =>
                 t.type === 'PURCHASE_BOTE' ||
+                t.type === 'POT_INCOME' ||
                 ((t.type === 'PAYMENT' || t.type === 'ADVANCE') && t.verified === true)
             )
             .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
@@ -118,6 +119,7 @@ export default function Home() {
             case 'PAYMENT': return { icon: <BanknotesIcon style={{ width: '1rem', color: 'var(--success)' }} />, label: 'Pago', sign: '+', color: 'text-success' };
             case 'ADVANCE': return { icon: <WalletIcon style={{ width: '1rem', color: '#9333EA' }} />, label: 'Anticipo', sign: '+', color: 'text-primary' };
             case 'PURCHASE_BOTE': return { icon: <ShoppingCartIcon style={{ width: '1rem', color: '#2563EB' }} />, label: 'Compra', sign: '-', color: '' };
+            case 'POT_INCOME': return { icon: <BanknotesIcon style={{ width: '1rem', color: '#10B981' }} />, label: 'Ingreso Bote', sign: '+', color: 'text-success' };
             default: return { icon: null, label: t.type, sign: '', color: '' };
         }
     };

@@ -18,7 +18,7 @@ export default function History() {
         // Tipo de Transacción
         let typeMatch = true;
         if (filter === 'CONSUMPTION') typeMatch = t.type === 'CONSUMPTION';
-        if (filter === 'PAYMENT') typeMatch = t.type === 'PAYMENT' || t.type === 'ADVANCE';
+        if (filter === 'PAYMENT') typeMatch = t.type === 'PAYMENT' || t.type === 'ADVANCE' || t.type === 'POT_INCOME';
         if (filter === 'PURCHASE') typeMatch = t.type === 'PURCHASE_BOTE';
 
         // Filtro por Miembro
@@ -100,6 +100,14 @@ export default function History() {
                     amountSign: '-',
                     amountClass: '',
                     borderColor: '#2563EB'
+                };
+            case 'POT_INCOME':
+                return {
+                    title: 'Ingreso al Bote',
+                    icon: <BanknotesIcon style={{ width: '1.5rem', color: '#10B981' }} />,
+                    amountClass: 'text-success',
+                    amountSign: '+',
+                    borderColor: '#10B981'
                 };
             default:
                 return { title: 'Unknown', icon: null, amountClass: '', amountSign: '', borderColor: 'gray' };
