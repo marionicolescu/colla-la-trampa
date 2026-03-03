@@ -346,7 +346,7 @@ export default function Home() {
                     {pendingConsumptions.length > 0 && (
                         <div style={{ marginTop: '0.5rem', textAlign: 'left', paddingBottom: '1rem' }}>
                             <h4 style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>
-                                Consumiciones Pendientes
+                                Consumiciones por pagar
                             </h4>
                             <div className="flex flex-col gap-sm" style={{ maxHeight: '350px', overflowY: 'auto', paddingRight: '0.25rem' }}>
                                 {pendingConsumptions.map(t => {
