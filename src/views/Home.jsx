@@ -51,6 +51,31 @@ export default function Home() {
     const systemPending = getSystemPendingBalance();
     const totalDebt = getSystemTotalDebt();
 
+    const pendingConsumptions = useMemo(() => {
+        if (!selectedMember) return [];
+        const balance = getMemberBalance(selectedMember.id);
+        if (balance >= -0.01) return [];
+
+        let remainingDebt = Math.abs(balance);
+        const pendingTxs = [];
+
+        for (const t of transactions) {
+            if (Number(t.memberId) === Number(selectedMember.id) && t.type === 'CONSUMPTION') {
+                const amount = Number(t.amount) || 0;
+                if (remainingDebt < 0.01) break;
+
+                if (amount <= remainingDebt + 0.01) {
+                    pendingTxs.push({ ...t, pendingAmount: amount });
+                    remainingDebt -= amount;
+                } else {
+                    pendingTxs.push({ ...t, pendingAmount: remainingDebt });
+                    remainingDebt = 0;
+                }
+            }
+        }
+        return pendingTxs;
+    }, [selectedMember, transactions, getMemberBalance]);
+
     const potHistory = useMemo(() => {
         const filtered = transactions
             .filter(t =>
@@ -215,7 +240,7 @@ export default function Home() {
                                 className="card flex justify-between items-center"
                                 style={{
                                     padding: '1rem',
-                                    cursor: 'pointer',
+                                    cursor: isNegative ? 'pointer' : 'default',
                                     backgroundColor: isMe ? 'rgba(236, 43, 120, 0.1)' : 'var(--bg-surface)',
                                     border: isMe ? '1px solid var(--primary)' : '1px solid var(--border)',
                                     boxShadow: isMe ? '0 0 10px rgba(236, 43, 120, 0.2)' : 'var(--shadow-sm)',
@@ -223,7 +248,9 @@ export default function Home() {
                                     borderRadius: '0.5rem',
                                     color: 'var(--text-primary)'
                                 }}
-                                onClick={() => setSelectedMember(member)}
+                                onClick={() => {
+                                    if (isNegative) setSelectedMember(member);
+                                }}
                             >
                                 <div>
                                     <div className="flex items-center gap-sm">
@@ -300,12 +327,12 @@ export default function Home() {
                 <Modal
                     isOpen={!!selectedMember}
                     onClose={() => setSelectedMember(null)}
-                    title={`Historial de ${selectedMember.name} `}
+                    title={`Resumen de ${selectedMember.name}`}
                 >
-                    <div style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
-                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Saldo neto</div>
+                    <div style={{ padding: '1rem 0', textAlign: 'center' }}>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: '1rem', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Saldo neto</div>
                         <div style={{
-                            fontSize: '2rem',
+                            fontSize: '3rem',
                             fontWeight: 'bold',
                             color: getMemberBalance(selectedMember.id) < 0 ? 'var(--danger)' :
                                 getMemberBalance(selectedMember.id) > 0 ? 'var(--success)' : 'inherit'
@@ -314,46 +341,60 @@ export default function Home() {
                         </div>
                     </div>
 
-                    <div className="flex flex-col gap-sm">
-                        {transactions
-                            .filter(t => t.memberId === selectedMember.id)
-                            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-                            .map(t => {
-                                const { icon, label, sign, color } = getTxDetails(t);
-                                const date = new Date(t.timestamp);
-                                return (
-                                    <div key={t.id} style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '0.75rem',
-                                        padding: '0.75rem',
-                                        borderBottom: '1px solid var(--border)'
-                                    }}>
-                                        <div style={{
-                                            backgroundColor: '#F3F4F6',
-                                            padding: '0.5rem',
-                                            borderRadius: '50%',
-                                            display: 'flex'
-                                        }}>{icon}</div>
-                                        <div style={{ flex: 1 }}>
-                                            <div style={{ fontWeight: 500 }}>{t.description || label}</div>
-                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                                                {date.toLocaleDateString()} {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {pendingConsumptions.length > 0 && (
+                        <div style={{ marginTop: '0.5rem', textAlign: 'left', paddingBottom: '1rem' }}>
+                            <h4 style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>
+                                Consumiciones Pendientes
+                            </h4>
+                            <div className="flex flex-col gap-sm" style={{ maxHeight: '350px', overflowY: 'auto', paddingRight: '0.25rem' }}>
+                                {pendingConsumptions.map(t => {
+                                    const date = new Date(t.timestamp);
+                                    const isPartial = t.pendingAmount < t.amount - 0.01;
+                                    return (
+                                        <div key={t.id} style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'space-between',
+                                            padding: '0.75rem',
+                                            backgroundColor: 'var(--bg-app)',
+                                            borderRadius: '0.5rem',
+                                            border: '1px solid var(--border)'
+                                        }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                <div style={{
+                                                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                                    padding: '0.5rem',
+                                                    borderRadius: '50%',
+                                                    display: 'flex',
+                                                    color: 'var(--danger)'
+                                                }}>
+                                                    <BeakerIcon style={{ width: '1.25rem' }} />
+                                                </div>
+                                                <div>
+                                                    <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>
+                                                        {t.description || 'Consumo'}
+                                                    </div>
+                                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                                        {date.toLocaleDateString()} {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div style={{ textAlign: 'right' }}>
+                                                <div style={{ fontWeight: 700, color: 'var(--danger)' }}>
+                                                    -{fmt(t.pendingAmount)}
+                                                </div>
+                                                {isPartial && (
+                                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+                                                        (de {fmt(t.amount)})
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
-                                        <div className={color} style={{ fontWeight: 600 }}>
-                                            {sign}{fmt(t.amount)}
-                                        </div>
-                                    </div>
-                                );
-                            })
-                        }
-                        {transactions.filter(t => t.memberId === selectedMember.id).length === 0 && (
-                            <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '1rem' }}>
-                                Sin movimientos
+                                    );
+                                })}
                             </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </Modal>
             )}
 
@@ -400,7 +441,7 @@ export default function Home() {
                                     <div style={{ backgroundColor: '#F59E0B', color: 'white', padding: '0.5rem', borderRadius: '0.5rem' }}>
                                         <BanknotesIcon style={{ width: '1.25rem' }} />
                                     </div>
-                                    <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Pagos Pendientes</span>
+                                    <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Pagos por verificar</span>
                                 </div>
                                 <span style={{ fontSize: '1.15rem', fontWeight: 700, color: '#F59E0B', whiteSpace: 'nowrap' }}>
                                     +{getMemberPendingPayment(pendingMember.id).toFixed(2)} €
@@ -414,7 +455,7 @@ export default function Home() {
                                     <div style={{ backgroundColor: '#9333EA', color: 'white', padding: '0.5rem', borderRadius: '0.5rem' }}>
                                         <WalletIcon style={{ width: '1.25rem' }} />
                                     </div>
-                                    <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Anticipos Pendientes</span>
+                                    <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Anticipos por verificar</span>
                                 </div>
                                 <span style={{ fontSize: '1.15rem', fontWeight: 700, color: '#9333EA', whiteSpace: 'nowrap' }}>
                                     +{getMemberPendingAdvance(pendingMember.id).toFixed(2)} €
@@ -422,13 +463,13 @@ export default function Home() {
                             </div>
                         )}
 
-                        <button
+                        {/* <button
                             className="btn btn-primary"
                             style={{ marginTop: '1rem', width: '100%' }}
                             onClick={() => setPendingMember(null)}
                         >
                             Entendido
-                        </button>
+                        </button> */}
                     </div>
                 </Modal>
             )}
