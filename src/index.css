@@ -84,7 +84,6 @@ textarea,
   position: relative;
   display: flex;
   flex-direction: column;
-  overflow-x: hidden;
   /* Evitar scroll lateral accidental */
 }
 

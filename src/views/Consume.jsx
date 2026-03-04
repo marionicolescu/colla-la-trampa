@@ -56,6 +56,8 @@ export default function Consume() {
         setActiveCategoryId(prev => (prev === id ? null : id));
     };
 
+
+
     // Slider state
     const currentPortion = currentUser?.alcoholPortion || 50;
 
@@ -310,20 +312,18 @@ export default function Consume() {
                 onMouseLeave={handleMouseLeave}
                 onContextMenu={(e) => e.preventDefault()} // Disable context menu completely on the card
                 style={{
+                    position: 'relative',
                     cursor: 'pointer',
+                    userSelect: 'none',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    padding: '1.5rem',
-                    position: 'relative',
+                    padding: '0.75rem 0.5rem', // Padding reducido para móviles
+                    height: '100%',
                     backgroundColor: 'var(--bg-surface)',
-                    border: qty > 0 ? '2px solid var(--primary)' : '1px solid var(--border)',
-                    color: 'var(--text-primary)',
-                    transition: 'all 0.2s',
-                    transform: qty > 0 ? 'scale(1)' : 'scale(1)',
-                    userSelect: 'none',
-                    WebkitTouchCallout: 'none'
+                    transition: 'transform 0.1s active',
+                    marginBottom: 0 // Gestionado por el gap del grid
                 }}
             >
                 {/* Favorite Badge */}
@@ -348,8 +348,8 @@ export default function Consume() {
 
                 {/* Product Media */}
                 <div style={{
-                    width: '120px',
-                    height: '120px',
+                    width: '100%',
+                    aspectRatio: '1/1',
                     marginBottom: '0.5rem',
                     display: 'flex',
                     alignItems: 'center',
@@ -526,7 +526,12 @@ export default function Consume() {
                     <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>Tus Favoritos</h3>
                 </div>
                 {favItems.length > 0 ? (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem' }}>
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                        gap: '0.75rem',
+                        padding: '0.5rem 0.25rem 0'
+                    }}>
                         {favItems.map(item => renderCard(item))}
                     </div>
                 ) : (
@@ -556,26 +561,22 @@ export default function Consume() {
                                 display: 'flex',
                                 justifyContent: 'space-between',
                                 alignItems: 'center',
-                                marginBottom: '1rem',
-                                padding: '1.2rem 1rem', // Un poco más de aire vertical
+                                padding: '1rem',
                                 borderBottom: '1px solid var(--border)',
                                 cursor: 'pointer',
                                 userSelect: 'none',
                                 position: 'sticky',
-                                top: '0', // Cambiado a 0 exacto
-                                zIndex: 100, // Z-index más alto para asegurar que nada pase por encima
-                                backgroundColor: 'var(--bg-surface)', // Corregido el nombre de la variable
-                                backdropFilter: 'blur(12px)',
-                                margin: '0 -1rem 1rem -1rem',
-                                boxShadow: isExpanded ? '0 8px 16px rgba(0,0,0,0.4)' : 'none',
-                                transition: 'all 0.3s ease'
+                                top: 0,
+                                zIndex: 100, // Z-index suficientemente alto
+                                backgroundColor: 'var(--bg-surface)',
+                                margin: '0 -1rem 0.75rem -1rem'
                             }}
                         >
-                            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: isExpanded ? 'var(--primary)' : 'var(--text-secondary)' }}>
+                            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
                                 {cat.label}
                             </h3>
                             {isExpanded ? (
-                                <ChevronUpIcon style={{ width: '1.25rem', color: 'var(--primary)' }} />
+                                <ChevronUpIcon style={{ width: '1.25rem', color: 'var(--text-secondary)' }} />
                             ) : (
                                 <ChevronDownIcon style={{ width: '1.25rem', color: 'var(--text-secondary)' }} />
                             )}
@@ -585,9 +586,9 @@ export default function Consume() {
                             <div className="accordion-inner">
                                 <div style={{
                                     display: 'grid',
-                                    gridTemplateColumns: 'repeat(2, 1fr)',
-                                    gap: '0.75rem', // Reducido para que quepa en móviles pequeños
-                                    padding: '0.75rem 0.25rem 1rem', // Menos padding lateral, más arriba para los badges
+                                    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                                    gap: '0.75rem',
+                                    padding: '0.5rem 0.25rem 1.5rem',
                                     margin: '0'
                                 }}>
                                     {cat.items.map(item => renderCard(item))}
@@ -626,8 +627,9 @@ export default function Consume() {
                 .accordion-content {
                     display: grid;
                     grid-template-rows: 0fr;
-                    transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    transition: grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1);
                     overflow: hidden;
+                    will-change: grid-template-rows;
                 }
                 
                 .accordion-content.expanded {
@@ -636,6 +638,14 @@ export default function Consume() {
                 
                 .accordion-inner {
                     min-height: 0;
+                    opacity: 0;
+                    transform: translateY(-0.5rem);
+                    transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+
+                .accordion-content.expanded .accordion-inner {
+                    opacity: 1;
+                    transform: translateY(0);
                 }
 
                 @keyframes fadeIn {

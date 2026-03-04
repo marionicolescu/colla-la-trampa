@@ -49,6 +49,11 @@ function AppContent() {
     }
   }, [loadingData, loadingAuth, currentUser, catalog, addTransaction, showToast]);
 
+  // Global scroll-to-top on tab change
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [activeTab]);
+
   if (loadingAuth || loadingData) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -89,7 +94,7 @@ function AppContent() {
 
   return (
     <>
-      <main style={{ paddingBottom: '4rem', flex: 1 }}>
+      <main style={{ paddingBottom: '8rem' }}>
         {activeTab === 'home' && <Home />}
         {activeTab === 'consumir' && <Consume />}
         {activeTab === 'compras' && <Purchases />}
