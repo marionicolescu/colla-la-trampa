@@ -49,11 +49,14 @@ export default function Consume() {
     const [isGuest, setIsGuest] = useState(false);
     const [cart, setCart] = useState({});
     const [showSettingsModal, setShowSettingsModal] = useState(false);
-    const [activeCategoryId, setActiveCategoryId] = useState(null);
+    const [expandedCategories, setExpandedCategories] = useState({});
 
     const toggleCategory = (id) => {
         triggerHaptic('light');
-        setActiveCategoryId(prev => (prev === id ? null : id));
+        setExpandedCategories(prev => ({
+            ...prev,
+            [id]: !prev[id]
+        }));
     };
 
 
@@ -552,7 +555,7 @@ export default function Consume() {
 
             {/* Dynamic Categories */}
             {categoriesWithItems.map(cat => {
-                const isExpanded = activeCategoryId === cat.id;
+                const isExpanded = expandedCategories[cat.id];
                 return (
                     <div key={cat.id} style={{ marginBottom: '1.5rem' }}>
                         <div
