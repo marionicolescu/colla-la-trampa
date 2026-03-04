@@ -24,6 +24,10 @@ export default function Admin() {
         toggleVerification,
         updateAppSettings,
         appSettings,
+        catalog,
+        updateProduct,
+        deleteProduct,
+        addProduct,
         showToast
     } = useApp();
 
@@ -37,6 +41,8 @@ export default function Admin() {
     const [bankMovements, setBankMovements] = useState([]);
     const [isProcessing, setIsProcessing] = useState(false);
     const [manualMatchMove, setManualMatchMove] = useState(null); // The bank movement being matched
+    const [editProduct, setEditProduct] = useState(null);
+    const [productSearch, setProductSearch] = useState('');
 
     // Filtering logic
     const filtered = transactions.filter(t => {
@@ -298,13 +304,88 @@ export default function Admin() {
                     <span style={{ fontWeight: 600 }}>Configuración Global</span>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', marginTop: '1rem', borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
+                    <div>
+                        <label className="admin-label">Precio Vaso/Hielo (€)</label>
+                        <input
+                            type="number"
+                            step="0.05"
+                            value={appSettings?.precioVasoHielo || 0}
+                            onChange={(e) => updateAppSettings({ precioVasoHielo: Number(e.target.value) })}
+                            className="admin-input"
+                            style={{ padding: '0.5rem' }}
+                        />
+                    </div>
+                    <div>
+                        <label className="admin-label">Precio Mezcla (€)</label>
+                        <input
+                            type="number"
+                            step="0.05"
+                            value={appSettings?.precioMezcla || 0}
+                            onChange={(e) => updateAppSettings({ precioMezcla: Number(e.target.value) })}
+                            className="admin-input"
+                            style={{ padding: '0.5rem' }}
+                        />
+                    </div>
+                    <div>
+                        <label className="admin-label">Medida Chupito (ml)</label>
+                        <input
+                            type="number"
+                            step="5"
+                            value={appSettings?.medidaChupito || 0}
+                            onChange={(e) => updateAppSettings({ medidaChupito: Number(e.target.value) })}
+                            className="admin-input"
+                            style={{ padding: '0.5rem' }}
+                        />
+                    </div>
+                    <div>
+                        <label className="admin-label">Medida Copa (ml)</label>
+                        <input
+                            type="number"
+                            step="10"
+                            value={appSettings?.medidaCopa || 0}
+                            onChange={(e) => updateAppSettings({ medidaCopa: Number(e.target.value) })}
+                            className="admin-input"
+                            style={{ padding: '0.5rem' }}
+                        />
+                    </div>
+                </div>
+
+                <div style={{ marginTop: '1.5rem', borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
+                    <div style={{ fontWeight: 600, fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Márgenes Extra para Invitados (€)
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+                        {[
+                            { label: 'Cubatas', field: 'margenInvitadoCubata' },
+                            { label: 'Chupitos', field: 'margenInvitadoChupito' },
+                            { label: 'Copas', field: 'margenInvitadoCopa' },
+                            { label: 'Vinos', field: 'margenInvitadoVino' },
+                            { label: 'Cervezas', field: 'margenInvitadoCerveza' },
+                            { label: 'Otros', field: 'margenInvitadoOtros' }
+                        ].map(m => (
+                            <div key={m.field}>
+                                <label className="admin-label" style={{ fontSize: '0.7rem' }}>{m.label}</label>
+                                <input
+                                    type="number"
+                                    step="0.05"
+                                    value={appSettings?.[m.field] || 0}
+                                    onChange={(e) => updateAppSettings({ [m.field]: Number(e.target.value) })}
+                                    className="admin-input"
+                                    style={{ padding: '0.4rem', fontSize: '0.8rem' }}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div style={{ height: '1.5rem' }}></div>
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 0 0.5rem' }}>
                     <div>
                         <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>Modo Mantenimiento</div>
                         <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                            {appSettings?.maintenanceMode
-                                ? 'La app está cerrada para usuarios no administradores'
-                                : 'La app está abierta a todos los usuarios'}
+                            La app se cierra para usuarios comunes
                         </div>
                     </div>
                     <label className="maintenance-switch">
@@ -441,6 +522,49 @@ export default function Admin() {
                         })}
                     </div>
                 )}
+            </div>
+
+            {/* Product Management Section */}
+            <div className="card mb-md" style={{ padding: '1rem', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
+                        <PencilIcon style={{ width: '1.25rem' }} />
+                        <span style={{ fontWeight: 600 }}>Gestión de Productos</span>
+                    </div>
+                </div>
+
+                <div style={{ marginBottom: '1rem' }}>
+                    <input
+                        type="text"
+                        placeholder="Buscar producto..."
+                        value={productSearch}
+                        onChange={e => setProductSearch(e.target.value)}
+                        className="admin-input"
+                        style={{ padding: '0.5rem' }}
+                    />
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '300px', overflowY: 'auto' }}>
+                    {catalog
+                        .filter(p => !p.disabled && p.name.toLowerCase().includes(productSearch.toLowerCase()))
+                        .map(p => (
+                            <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem', borderBottom: '1px solid var(--border)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    {p.imageUrl ? (
+                                        <img src={p.imageUrl} alt="" style={{ width: '2rem', height: '2rem', objectFit: 'contain' }} />
+                                    ) : (
+                                        <span style={{ fontSize: '1.2rem' }}>{p.icon || '📦'}</span>
+                                    )}
+                                    <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>{p.name}</div>
+                                </div>
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <button onClick={() => setEditProduct({ ...p })} className="btn-icon" style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer' }}>
+                                        <PencilIcon style={{ width: '1rem' }} />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                </div>
             </div>
 
             {/* Filters Bar */}
@@ -715,6 +839,73 @@ export default function Admin() {
                         Cancelar
                     </button>
                 </div>
+            </Modal>
+
+            <Modal isOpen={!!editProduct} onClose={() => setEditProduct(null)} title="Editar Producto">
+                {editProduct && (
+                    <form onSubmit={async (e) => { e.preventDefault(); await updateProduct(editProduct.id, editProduct); setEditProduct(null); }} className="flex flex-col gap-md">
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div>
+                                <label className="admin-label">Nombre</label>
+                                <input type="text" value={editProduct.name} onChange={e => setEditProduct({ ...editProduct, name: e.target.value })} className="admin-input" />
+                            </div>
+                            <div>
+                                <label className="admin-label">URL Imagen</label>
+                                <input type="text" value={editProduct.imageUrl || ''} onChange={e => setEditProduct({ ...editProduct, imageUrl: e.target.value })} className="admin-input" />
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div>
+                                <label className="admin-label">Precio Litro (€)</label>
+                                <input type="number" step="0.01" value={editProduct.precioLitro || ''} onChange={e => setEditProduct({ ...editProduct, precioLitro: Number(e.target.value) })} className="admin-input" />
+                            </div>
+                            <div>
+                                <label className="admin-label">Precio Base (€)</label>
+                                <input type="number" step="0.01" value={editProduct.precioBase || ''} onChange={e => setEditProduct({ ...editProduct, precioBase: Number(e.target.value) })} className="admin-input" />
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
+                            <label className="flex items-center gap-xs" style={{ fontSize: '0.75rem' }}>
+                                <input type="checkbox" checked={editProduct.esCubata} onChange={e => setEditProduct({ ...editProduct, esCubata: e.target.checked })} /> Cubata
+                            </label>
+                            <label className="flex items-center gap-xs" style={{ fontSize: '0.75rem' }}>
+                                <input type="checkbox" checked={editProduct.esChupito} onChange={e => setEditProduct({ ...editProduct, esChupito: e.target.checked })} /> Chupito
+                            </label>
+                            <label className="flex items-center gap-xs" style={{ fontSize: '0.75rem' }}>
+                                <input type="checkbox" checked={editProduct.esCopa} onChange={e => setEditProduct({ ...editProduct, esCopa: e.target.checked })} /> Copa
+                            </label>
+                            <label className="flex items-center gap-xs" style={{ fontSize: '0.75rem' }}>
+                                <input type="checkbox" checked={editProduct.esVino} onChange={e => setEditProduct({ ...editProduct, esVino: e.target.checked })} /> Vino
+                            </label>
+                            <label className="flex items-center gap-xs" style={{ fontSize: '0.75rem' }}>
+                                <input type="checkbox" checked={editProduct.esCerveza} onChange={e => setEditProduct({ ...editProduct, esCerveza: e.target.checked })} /> Cerveza
+                            </label>
+                            <label className="flex items-center gap-xs" style={{ fontSize: '0.75rem' }}>
+                                <input type="checkbox" checked={editProduct.esOtros} onChange={e => setEditProduct({ ...editProduct, esOtros: e.target.checked })} /> Otros
+                            </label>
+                        </div>
+
+                        <div style={{ borderTop: '1px solid var(--border)', paddingTop: '0.5rem', marginTop: '0.5rem' }}>
+                            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                                <label className="flex items-center gap-xs" style={{ fontSize: '0.75rem' }}>
+                                    <input type="checkbox" checked={editProduct.usaMezcla} onChange={e => setEditProduct({ ...editProduct, usaMezcla: e.target.checked })} /> Usa Mezcla
+                                </label>
+                                {(editProduct.esVino || editProduct.mode === 'VINOS') && (
+                                    <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>
+                                        (Necesario para Tinto de Verano vs Moscatel)
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="flex gap-md" style={{ marginTop: '1rem' }}>
+                            <button type="button" onClick={() => setEditProduct(null)} className="btn" style={{ flex: 1 }}>Cancelar</button>
+                            <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>Guardar</button>
+                        </div>
+                    </form>
+                )}
             </Modal>
 
             <style>{`

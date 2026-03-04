@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { MinusIcon, PlusIcon, StarIcon, BeakerIcon } from '@heroicons/react/24/outline';
+import { MinusIcon, PlusIcon, StarIcon, BeakerIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import { SUCCESS_SOUND_B64 } from '../utils/audioStore';
 
@@ -9,6 +9,12 @@ export default function Consume() {
     const [isGuest, setIsGuest] = useState(false);
     const [cart, setCart] = useState({});
     const [showSettingsModal, setShowSettingsModal] = useState(false);
+    const [activeCategoryId, setActiveCategoryId] = useState(null);
+
+    const toggleCategory = (id) => {
+        triggerHaptic('light');
+        setActiveCategoryId(prev => (prev === id ? null : id));
+    };
 
     // Slider state
     const currentPortion = currentUser?.alcoholPortion || 50;
@@ -36,21 +42,22 @@ export default function Consume() {
         // Prevent adding if it was a long press
         if (isLongPress) return;
 
+        const compositeId = item.compositeId || `${item.id}|DEFAULT`;
         triggerHaptic('light');
         setCart(prev => ({
             ...prev,
-            [item.id]: (prev[item.id] || 0) + 1
+            [compositeId]: (prev[compositeId] || 0) + 1
         }));
     };
 
-    const removeFromCart = (itemId) => {
+    const removeFromCart = (compositeId) => {
         triggerHaptic('light');
         setCart(prev => {
             const newCart = { ...prev };
-            if (newCart[itemId] > 1) {
-                newCart[itemId]--;
+            if (newCart[compositeId] > 1) {
+                newCart[compositeId]--;
             } else {
-                delete newCart[itemId];
+                delete newCart[compositeId];
             }
             return newCart;
         });
@@ -58,62 +65,114 @@ export default function Consume() {
 
     const clearCart = () => setCart({});
 
-    const isAlcoholic = (category) => {
-        if (!category) return false;
-        const c = category.toLowerCase();
-        return c.includes('copa') || c.includes('alcohol') || c.includes('chupito');
-    };
+    const CATEGORIES_CONFIG = [
+        { id: 'CUBATAS', label: 'Cubatas', field: 'esCubata' },
+        { id: 'CHUPITOS', label: 'Chupitos', field: 'esChupito' },
+        { id: 'COPAS', label: 'Copas', field: 'esCopa' },
+        { id: 'VINOS', label: 'Vinos', field: 'esVino' },
+        { id: 'CERVEZAS', label: 'Cervezas', field: 'esCerveza' },
+        { id: 'OTROS', label: 'Otros', field: 'esOtros' }
+    ];
 
-    const getCalculatedPrice = (item) => {
+    const getCalculatedPrice = (item, mode = 'DEFAULT') => {
+        const roundUpToFiveCents = (num) => Math.ceil(num * 20) / 20;
         const guestMode = item.isGuestOverride !== undefined ? item.isGuestOverride : isGuest;
-        if (isAlcoholic(item.category)) {
-            // 1. Obtener precio base de la DB (price25, price50, etc.) o por defecto el genérico
-            const portionKey = 'price' + currentPortion;
-            const basePrice = item[portionKey] !== undefined ? item[portionKey] : (item.price || 0);
 
-            // 2. Obtener márgenes de app_settings
-            const marginMember = appSettings?.margenMiembrosCopas || 0;
-            const marginGuest = appSettings?.margenInvitadosCopas || 0;
+        // Plus values from settings
+        const plusHielo = appSettings?.precioVasoHielo || 0.25;
+        const plusMezcla = appSettings?.precioMezcla || 0.35;
+        const mlChupito = appSettings?.medidaChupito || 50;
+        const mlCopa = appSettings?.medidaCopa || 200;
 
-            // 3. Sumar el margen correspondiente
-            return basePrice + (guestMode ? marginGuest : marginMember);
+        // Guest Margins
+        const margins = {
+            CUBATAS: appSettings?.margenInvitadoCubata || 0,
+            CHUPITOS: appSettings?.margenInvitadoChupito || 0,
+            COPAS: appSettings?.margenInvitadoCopa || 0,
+            VINOS: appSettings?.margenInvitadoVino || 0,
+            CERVEZAS: appSettings?.margenInvitadoCerveza || 0,
+            OTROS: appSettings?.margenInvitadoOtros || 0
+        };
+
+        const currentMargin = guestMode ? (margins[mode] || 0) : 0;
+
+        let finalPrice = 0;
+
+        if (mode === 'CHUPITOS') {
+            const precioLiquido = (item.precioLitro / 1000) * mlChupito;
+            return roundUpToFiveCents(precioLiquido + currentMargin); // No pluses for shots
         }
 
-        // Si no es copa, funciona como antes (price o guestPrice estático de la DB)
-        return guestMode ? item.guestPrice : item.price;
+        if (mode === 'COPAS') {
+            const precioLiquido = (item.precioLitro / 1000) * mlCopa;
+            return roundUpToFiveCents(precioLiquido + plusHielo + currentMargin); // Always add for Copas
+        }
+
+        if (mode === 'CUBATAS') {
+            const precioLiquido = (item.precioLitro / 1000) * currentPortion;
+            return roundUpToFiveCents(precioLiquido + plusHielo + plusMezcla + currentMargin); // Always add for Cubatas
+        }
+
+        // Default or fixed price items (Vinos, Cervezas, Otros)
+        if (item.precioBase !== undefined && item.precioBase !== null) {
+            finalPrice = item.precioBase;
+            if (mode === 'VINOS' || item.esVino) {
+                finalPrice += plusHielo; // Assume wine uses glass
+                if (item.usaMezcla) finalPrice += plusMezcla;
+            }
+            return roundUpToFiveCents(finalPrice + currentMargin);
+        }
+
+        // Fallback for old items or missing data
+        const fallbackBase = guestMode ? (item.guestPrice || 0) : (item.price || 0);
+        return roundUpToFiveCents(fallbackBase + currentMargin);
     };
 
     const calculateTotal = () => {
         let total = 0;
-        Object.entries(cart).forEach(([id, qty]) => {
-            const item = catalog.find(i => i.id === id);
+        Object.entries(cart).forEach(([compositeId, qty]) => {
+            const [productId, mode] = compositeId.split('|');
+            const item = catalog.find(i => i.id === productId);
             if (item) {
-                total += getCalculatedPrice(item) * qty;
+                total += getCalculatedPrice(item, mode) * qty;
             }
         });
         return total;
     };
 
     const handleSubmit = () => {
-        const total = calculateTotal();
-        if (total <= 0) return;
+        const totalCost = calculateTotal();
+        if (totalCost <= 0) return;
 
         triggerHaptic('success');
         playSuccessSound();
 
         // Create description string
-        const description = Object.entries(cart).map(([id, qty]) => {
-            const item = catalog.find(i => i.id === id);
+        const description = Object.entries(cart).map(([compositeId, qty]) => {
+            const [productId, mode] = compositeId.split('|');
+            const item = catalog.find(i => i.id === productId);
             let name = item.name;
-            if (isAlcoholic(item.category) && currentPortion !== 50) {
-                name += ` (${currentPortion}ml)`;
-            }
-            return `${qty}x ${name}`;
+
+            const modeEmojis = {
+                CUBATAS: '🍹',
+                CHUPITOS: '🥃',
+                COPAS: '🍸',
+                VINOS: '🍷',
+                CERVEZAS: '🍺',
+                OTROS: '📦'
+            };
+            const emoji = modeEmojis[mode] || '🥤';
+
+            if (mode === 'CHUPITOS') name += ' (Chupito)';
+            else if (mode === 'COPAS') name += ' (Copa 200ml)';
+            else if (mode === 'CUBATAS' && currentPortion !== 50) name += ` (${currentPortion}ml)`;
+
+            return `${qty}x ${emoji} ${name}`;
         }).join(', ') + (isGuest ? ' (Invitado)' : '');
 
         addTransaction({
             type: 'CONSUMPTION',
-            amount: total,
+            amount: totalCost,
             memberId: currentUser.id,
             description: description,
             isGuest: isGuest
@@ -126,19 +185,28 @@ export default function Consume() {
     const total = calculateTotal();
     const itemCount = Object.values(cart).reduce((a, b) => a + b, 0);
 
-    // Grouping by Category and Favorites
+    // Grouping logic for the UI
     const favorites = currentUser?.favoriteProducts || [];
 
-    // Derived Data
-    const favItems = catalog.filter(item => favorites.includes(item.id) && !item.disabled);
+    // Filtered favorites based on composite ID
+    const favItems = [];
+    favorites.forEach(favId => {
+        const [prodId, mode] = favId.includes('|') ? favId.split('|') : [favId, 'DEFAULT'];
+        const product = catalog.find(p => p.id === prodId && !p.disabled);
+        if (product) {
+            favItems.push({ ...product, compositeId: favId, renderMode: mode });
+        }
+    });
 
-    // Group remaining (or all) items by category
-    const groupedCatalog = catalog.filter(item => !item.disabled).reduce((acc, item) => {
-        const cat = item.category || 'Otros';
-        if (!acc[cat]) acc[cat] = [];
-        acc[cat].push(item);
-        return acc;
-    }, {});
+    // Group items by our defined categories
+    const categoriesWithItems = CATEGORIES_CONFIG.map(cat => {
+        const items = catalog.filter(p => !p.disabled && p[cat.field]).map(p => ({
+            ...p,
+            compositeId: `${p.id}|${cat.id}`,
+            renderMode: cat.id
+        }));
+        return { ...cat, items };
+    }).filter(cat => cat.items.length > 0);
 
 
     // --- Long Press Handlers ---
@@ -147,8 +215,9 @@ export default function Consume() {
         longPressTimer.current = setTimeout(() => {
             setIsLongPress(true);
             triggerHaptic('heavy');
-            toggleFavorite(item.id);
-            showToast(favorites.includes(item.id) ? 'Eliminado de favoritos' : 'Añadido a favoritos');
+            const favId = item.compositeId || item.id;
+            toggleFavorite(favId);
+            // The toast msg might be slightly out of sync until next render, but it's okay for now
         }, 500); // 500ms for long press
     };
 
@@ -170,13 +239,14 @@ export default function Consume() {
     const handleMouseLeave = handleTouchEnd;
 
     const renderCard = (item) => {
-        const qty = cart[item.id] || 0;
-        const isFav = favorites.includes(item.id);
-        const calcPrice = getCalculatedPrice(item);
+        const compositeId = item.compositeId || `${item.id}|DEFAULT`;
+        const qty = cart[compositeId] || 0;
+        const isFav = favorites.includes(compositeId);
+        const calcPrice = getCalculatedPrice(item, item.renderMode);
 
         return (
             <div
-                key={`item-${item.id}`}
+                key={`item-${compositeId}`}
                 className="card"
                 onClick={() => addToCart(item)}
                 onTouchStart={() => handleTouchStart(item)}
@@ -215,7 +285,7 @@ export default function Consume() {
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
-                            removeFromCart(item.id);
+                            removeFromCart(compositeId);
                         }}
                         className="card-minus"
                     >
@@ -240,8 +310,25 @@ export default function Consume() {
                         : 'none',
                     transform: (item.isPremium || item.name?.toLowerCase().includes('premium'))
                         ? 'scale(1.1)'
-                        : 'scale(1)'
+                        : 'scale(1)',
+                    position: 'relative'
                 }}>
+                    {/* Mode Emoji Badge */}
+                    <div style={{
+                        position: 'absolute',
+                        bottom: '-0.2rem',
+                        right: '-0.2rem',
+                        fontSize: '1.5rem',
+                        zIndex: 2,
+                        filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
+                        pointerEvents: 'none'
+                    }}>
+                        {item.renderMode === 'CUBATAS' ? '🍹' :
+                            item.renderMode === 'CHUPITOS' ? '🥃' :
+                                item.renderMode === 'COPAS' ? '🍸' :
+                                    item.renderMode === 'VINOS' ? '🍷' :
+                                        item.renderMode === 'CERVEZAS' ? '🍺' : '📦'}
+                    </div>
                     {item.imageUrl ? (
                         <img
                             src={item.imageUrl}
@@ -397,35 +484,81 @@ export default function Consume() {
             )}
 
             {/* Favorites Section */}
-            {favItems.length > 0 && (
-                <div style={{ marginBottom: '2rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', paddingLeft: '0.5rem' }}>
-                        <StarIconSolid style={{ width: '1.25rem', color: '#FBBF24' }} />
-                        <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>Tus Favoritos</h3>
-                    </div>
+            <div style={{ marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', paddingLeft: '0.5rem' }}>
+                    <StarIconSolid style={{ width: '1.25rem', color: '#FBBF24' }} />
+                    <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>Tus Favoritos</h3>
+                </div>
+                {favItems.length > 0 ? (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
                         {favItems.map(item => renderCard(item))}
                     </div>
-                </div>
-            )}
+                ) : (
+                    <div style={{
+                        padding: '1.5rem',
+                        textAlign: 'center',
+                        backgroundColor: 'rgba(255,255,255,0.03)',
+                        borderRadius: '1rem',
+                        border: '1px dashed var(--border)',
+                        color: 'var(--text-secondary)',
+                        fontSize: '0.85rem',
+                        lineHeight: '1.4'
+                    }}>
+                        Mantén pulsado cualquier producto para añadirlo a favoritos ★
+                    </div>
+                )}
+            </div>
 
             {/* Dynamic Categories */}
-            {Object.entries(groupedCatalog).map(([categoryName, items]) => {
-                // If it's the "Otros" category and we have no items, skip
-                if (items.length === 0) return null;
-
+            {categoriesWithItems.map(cat => {
+                const isExpanded = activeCategoryId === cat.id;
                 return (
-                    <div key={categoryName} style={{ marginBottom: '2rem' }}>
-                        <div style={{ marginBottom: '1rem', paddingLeft: '0.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
+                    <div key={cat.id} style={{ marginBottom: '1.5rem' }}>
+                        <div
+                            onClick={() => toggleCategory(cat.id)}
+                            style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                marginBottom: '0.75rem',
+                                padding: '0.75rem 0.5rem',
+                                borderBottom: '1px solid var(--border)',
+                                cursor: 'pointer',
+                                userSelect: 'none',
+                                position: 'sticky',
+                                top: 0,
+                                zIndex: 10,
+                                backgroundColor: 'var(--bg-main)', // Fondo sólido para que no se vea el contenido debajo al hacer scroll
+                                backdropFilter: 'blur(8px)', // Opcional: efecto cristal para que quede más pro
+                                margin: '0 -1rem 0.75rem', // Compensar padding del contenedor si hace falta
+                                paddingLeft: '1.5rem',
+                                paddingRight: '1.5rem'
+                            }}
+                        >
                             <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
-                                {categoryName}
+                                {cat.label}
                             </h3>
+                            {isExpanded ? (
+                                <ChevronUpIcon style={{ width: '1.25rem', color: 'var(--text-secondary)' }} />
+                            ) : (
+                                <ChevronDownIcon style={{ width: '1.25rem', color: 'var(--text-secondary)' }} />
+                            )}
                         </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
-                            {items.map(item => renderCard(item))}
+
+                        <div className={`accordion-content ${isExpanded ? 'expanded' : 'collapsed'}`}>
+                            <div className="accordion-inner">
+                                <div style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(2, 1fr)',
+                                    gap: '1.25rem', // Aumentado un poco para dar más aire
+                                    padding: '0.75rem 0.75rem 0.5rem' // Añadido padding arriba y a los lados para los badges
+                                }}>
+                                    {cat.items.map(item => renderCard(item))}
+                                </div>
+                            </div>
                         </div>
                     </div>
-                )
+                );
             })}
 
             {/* Floating Action Button */}
@@ -452,6 +585,22 @@ export default function Consume() {
                     transform: scale(1.05);
                     text-shadow: 0 0 15px rgba(236, 43, 120, 0.2);
                 }
+                
+                .accordion-content {
+                    display: grid;
+                    grid-template-rows: 0fr;
+                    transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    overflow: hidden;
+                }
+                
+                .accordion-content.expanded {
+                    grid-template-rows: 1fr;
+                }
+                
+                .accordion-inner {
+                    min-height: 0;
+                }
+
                 @keyframes fadeIn {
                     from { opacity: 0; transform: translateY(10px); }
                     to { opacity: 1; transform: translateY(0); }

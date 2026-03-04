@@ -9,6 +9,7 @@ import {
     serverTimestamp,
     deleteDoc,
     updateDoc,
+    setDoc,
     doc
 } from 'firebase/firestore';
 import {
@@ -27,7 +28,14 @@ export const AppProvider = ({ children }) => {
     const [transactions, setTransactions] = useState([]);
     const [members, setMembers] = useState([]);
     const [catalog, setCatalog] = useState([]);
-    const [appSettings, setAppSettings] = useState({ maintenanceMode: false, motd: "" });
+    const [appSettings, setAppSettings] = useState({
+        maintenanceMode: false,
+        motd: "",
+        precioVasoHielo: 0.25,
+        precioMezcla: 0.35,
+        medidaChupito: 50,
+        medidaCopa: 200
+    });
     const [currentUser, setCurrentUser] = useState(null);
     const [loadingAuth, setLoadingAuth] = useState(true);
     const [loadingData, setLoadingData] = useState(true);
@@ -297,6 +305,38 @@ export const AppProvider = ({ children }) => {
         }
     };
 
+    const updateProduct = async (productId, updates) => {
+        try {
+            await updateDoc(doc(db, "products", productId), updates);
+            showToast('Producto actualizado');
+        } catch (error) {
+            showToast(`Error al actualizar producto: ${error.message}`);
+        }
+    };
+
+    const deleteProduct = async (productId) => {
+        try {
+            await deleteDoc(doc(db, "products", productId));
+            showToast('Producto eliminado');
+        } catch (error) {
+            showToast(`Error al eliminar producto: ${error.message}`);
+        }
+    };
+
+    const addProduct = async (id, data) => {
+        try {
+            // If id is provided, we use it as the doc ID (for named IDs like 'jager')
+            if (id) {
+                await setDoc(doc(db, "products", id), data);
+            } else {
+                await addDoc(collection(db, "products"), data);
+            }
+            showToast('Producto añadido');
+        } catch (error) {
+            showToast(`Error al añadir producto: ${error.message}`);
+        }
+    };
+
     // --- User Preferences ---
 
     const toggleFavorite = async (productId) => {
@@ -374,6 +414,9 @@ export const AppProvider = ({ children }) => {
         updateTransaction,
         toggleVerification,
         updateAppSettings,
+        updateProduct,
+        deleteProduct,
+        addProduct,
         toggleFavorite,
         updateAlcoholPortion
     }; return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

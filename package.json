@@ -13,6 +13,7 @@
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "firebase": "^12.8.0",
+    "firebase-admin": "^13.7.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "vite-plugin-pwa": "^1.2.0"
