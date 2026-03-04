@@ -4,6 +4,46 @@ import { MinusIcon, PlusIcon, StarIcon, BeakerIcon, ChevronDownIcon, ChevronUpIc
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import { SUCCESS_SOUND_B64 } from '../utils/audioStore';
 
+const ProductImage = ({ item }) => {
+    const [isLoaded, setIsLoaded] = useState(false);
+
+    if (!item.imageUrl) {
+        return <span style={{ fontSize: '2.5rem' }}>{item.icon}</span>;
+    }
+
+    return (
+        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+            {!isLoaded && <div className="skeleton-pulse" style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                borderRadius: '0.5rem',
+                backgroundColor: 'rgba(255,255,255,0.05)'
+            }} />}
+            <img
+                src={item.imageUrl}
+                alt={item.name}
+                onLoad={() => setIsLoaded(true)}
+                loading="lazy"
+                decoding="async"
+                style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
+                    padding: '0.2rem',
+                    borderRadius: '0.5rem',
+                    pointerEvents: 'none',
+                    opacity: isLoaded ? 1 : 0,
+                    transition: 'opacity 0.4s ease-in-out'
+                }}
+                draggable="false"
+            />
+        </div>
+    );
+};
+
 export default function Consume() {
     const { currentUser, appSettings, addTransaction, showToast, catalog, toggleFavorite, updateAlcoholPortion } = useApp();
     const [isGuest, setIsGuest] = useState(false);
@@ -18,6 +58,19 @@ export default function Consume() {
 
     // Slider state
     const currentPortion = currentUser?.alcoholPortion || 50;
+
+    // Image pre-fetching for favorites
+    useEffect(() => {
+        const favIds = currentUser?.favorites || [];
+        const favItems = catalog.filter(p => favIds.includes(p.id));
+
+        favItems.forEach(item => {
+            if (item.imageUrl) {
+                const img = new Image();
+                img.src = item.imageUrl;
+            }
+        });
+    }, [catalog, currentUser?.favorites]);
 
     // Long press logic
     const longPressTimer = useRef(null);
@@ -295,8 +348,8 @@ export default function Consume() {
 
                 {/* Product Media */}
                 <div style={{
-                    width: '6.5rem',
-                    height: '6.5rem',
+                    width: '120px',
+                    height: '120px',
                     marginBottom: '0.5rem',
                     display: 'flex',
                     alignItems: 'center',
@@ -329,23 +382,7 @@ export default function Consume() {
                                     item.renderMode === 'VINOS' ? '🍷' :
                                         item.renderMode === 'CERVEZAS' ? '🍺' : '📦'}
                     </div>
-                    {item.imageUrl ? (
-                        <img
-                            src={item.imageUrl}
-                            alt={item.name}
-                            style={{
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'contain',
-                                padding: '0.2rem',
-                                borderRadius: '0.5rem',
-                                pointerEvents: 'none' // Evita que se pueda interactuar con la imagen (como arrastrarla o menú de guardado)
-                            }}
-                            draggable="false"
-                        />
-                    ) : (
-                        <span style={{ fontSize: '2.5rem' }}>{item.icon}</span>
-                    )}
+                    <ProductImage item={item} />
                 </div>
                 <div style={{ fontWeight: 600, color: 'var(--text-primary)', textAlign: 'center', fontSize: '0.9rem', lineHeight: '1.2' }}>
                     {item.name}
@@ -604,6 +641,21 @@ export default function Consume() {
                 @keyframes fadeIn {
                     from { opacity: 0; transform: translateY(10px); }
                     to { opacity: 1; transform: translateY(0); }
+                }
+                @keyframes slideIn {
+                    from { opacity: 0; transform: translateY(-5px) scale(0.98); }
+                    to { opacity: 1; transform: translateY(0) scale(1); }
+                }
+
+                .skeleton-pulse {
+                    background: linear-gradient(-90deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.07) 50%, rgba(255,255,255,0.03) 100%);
+                    background-size: 400% 400%;
+                    animation: pulse 1.5s ease-in-out infinite;
+                }
+
+                @keyframes pulse {
+                    0% { background-position: 0% 0%; }
+                    100% { background-position: -135% 0%; }
                 }
             `}</style>
         </div>
