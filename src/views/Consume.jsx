@@ -422,8 +422,7 @@ export default function Consume() {
         <div className="container" style={{
             paddingBottom: itemCount > 0 ? '10rem' : '5rem',
             minHeight: '100vh',
-            color: 'var(--text-primary)',
-            transition: 'padding-bottom 0.4s ease'
+            color: 'var(--text-primary)'
         }}>
             <div className="header-container" style={{ marginBottom: '1rem', display: 'flex', position: 'relative', justifyContent: 'center', alignItems: 'center' }}>
                 <h2 style={{ margin: 0, textAlign: 'center' }}>Consumir</h2>
@@ -527,7 +526,7 @@ export default function Consume() {
                     <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>Tus Favoritos</h3>
                 </div>
                 {favItems.length > 0 ? (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem' }}>
                         {favItems.map(item => renderCard(item))}
                     </div>
                 ) : (
@@ -557,26 +556,26 @@ export default function Consume() {
                                 display: 'flex',
                                 justifyContent: 'space-between',
                                 alignItems: 'center',
-                                marginBottom: '0.75rem',
-                                padding: '0.75rem 0.5rem',
+                                marginBottom: '1rem',
+                                padding: '1.2rem 1rem', // Un poco más de aire vertical
                                 borderBottom: '1px solid var(--border)',
                                 cursor: 'pointer',
                                 userSelect: 'none',
                                 position: 'sticky',
-                                top: 0,
-                                zIndex: 10,
-                                backgroundColor: 'var(--bg-main)', // Fondo sólido para que no se vea el contenido debajo al hacer scroll
-                                backdropFilter: 'blur(8px)', // Opcional: efecto cristal para que quede más pro
-                                margin: '0 -1rem 0.75rem', // Compensar padding del contenedor si hace falta
-                                paddingLeft: '1.5rem',
-                                paddingRight: '1.5rem'
+                                top: '0', // Cambiado a 0 exacto
+                                zIndex: 100, // Z-index más alto para asegurar que nada pase por encima
+                                backgroundColor: 'var(--bg-surface)', // Corregido el nombre de la variable
+                                backdropFilter: 'blur(12px)',
+                                margin: '0 -1rem 1rem -1rem',
+                                boxShadow: isExpanded ? '0 8px 16px rgba(0,0,0,0.4)' : 'none',
+                                transition: 'all 0.3s ease'
                             }}
                         >
-                            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
+                            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: isExpanded ? 'var(--primary)' : 'var(--text-secondary)' }}>
                                 {cat.label}
                             </h3>
                             {isExpanded ? (
-                                <ChevronUpIcon style={{ width: '1.25rem', color: 'var(--text-secondary)' }} />
+                                <ChevronUpIcon style={{ width: '1.25rem', color: 'var(--primary)' }} />
                             ) : (
                                 <ChevronDownIcon style={{ width: '1.25rem', color: 'var(--text-secondary)' }} />
                             )}
@@ -587,8 +586,9 @@ export default function Consume() {
                                 <div style={{
                                     display: 'grid',
                                     gridTemplateColumns: 'repeat(2, 1fr)',
-                                    gap: '1.25rem', // Aumentado un poco para dar más aire
-                                    padding: '0.75rem 0.75rem 0.5rem' // Añadido padding arriba y a los lados para los badges
+                                    gap: '0.75rem', // Reducido para que quepa en móviles pequeños
+                                    padding: '0.75rem 0.25rem 1rem', // Menos padding lateral, más arriba para los badges
+                                    margin: '0'
                                 }}>
                                     {cat.items.map(item => renderCard(item))}
                                 </div>

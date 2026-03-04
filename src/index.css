@@ -57,6 +57,13 @@ body {
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+  overscroll-behavior-y: none;
+  /* Evita el efecto rebote elástico */
+}
+
+html {
+  overscroll-behavior-y: none;
+  height: 100%;
 }
 
 input,
@@ -77,6 +84,8 @@ textarea,
   position: relative;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
+  /* Evitar scroll lateral accidental */
 }
 
 /* Utilities */

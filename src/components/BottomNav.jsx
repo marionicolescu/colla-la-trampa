@@ -29,10 +29,11 @@ export default function BottomNav({ activeTab, onTabChange }) {
             borderTop: '1px solid var(--border)',
             display: 'flex',
             justifyContent: 'space-around',
-            padding: '0.5rem 0',
+            padding: '0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom))',
             zIndex: 1000,
             maxWidth: '600px',
-            margin: '0 auto' // Center if on desktop
+            margin: '0 auto',
+            backdropFilter: 'blur(10px)'
         }}>
             {tabs.map(tab => {
                 const Icon = activeTab === tab.id ? tab.activeIcon : tab.icon;
