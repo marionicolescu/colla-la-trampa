@@ -400,129 +400,135 @@ export default function Admin() {
             </div>
 
             {/* Bank Reconciliation Section */}
-            <div className="card mb-md" style={{ padding: '1rem', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-                        <TableCellsIcon style={{ width: '1.25rem' }} />
-                        <span style={{ fontWeight: 600 }}>Conciliación Bancaria</span>
-                    </div>
-                    {bankMovements.length > 0 && (
-                        <button
-                            onClick={() => setBankMovements([])}
-                            style={{ fontSize: '0.75rem', color: 'var(--primary)', background: 'none', border: 'none', fontWeight: 600, cursor: 'pointer' }}
-                        >
-                            Limpiar
-                        </button>
-                    )}
-                </div>
-
-                {bankMovements.length === 0 ? (
-                    <div className="file-upload-zone">
-                        <input
-                            type="file"
-                            accept=".csv"
-                            onChange={handleFileUpload}
-                            id="bank-file-upload"
-                            style={{ display: 'none' }}
-                        />
-                        <label htmlFor="bank-file-upload" style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            cursor: 'pointer',
-                            padding: '1.5rem',
-                            border: '1px dashed var(--border)',
-                            borderRadius: '1rem',
-                            transition: 'background 0.2s'
-                        }}>
-                            <ArrowUpTrayIcon style={{ width: '2rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }} />
-                            <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>Subir Extracto Revolut (.csv)</span>
-                            <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>Solo se procesarán movimientos nuevos</span>
-                        </label>
-                    </div>
-                ) : (
-                    <div className="flex flex-col gap-sm">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                                {bankMovements.length} movimientos nuevos encontrados
-                            </span>
-                            <button
-                                onClick={verifyAllMatches}
-                                className="btn btn-primary"
-                                style={{ fontSize: '0.7rem', padding: '0.4rem 0.8rem' }}
-                                disabled={bankMovements.filter(m => m.bankMatch && m.confidence === 'high').length === 0}
-                            >
-                                Verificar Automáticos ({bankMovements.filter(m => m.bankMatch && m.confidence === 'high').length})
-                            </button>
+            {/* DESACTIVADO (false) */}
+            {false && (
+                <>
+                    <div className="card mb-md" style={{ padding: '1rem', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
+                                <TableCellsIcon style={{ width: '1.25rem' }} />
+                                <span style={{ fontWeight: 600 }}>Conciliación Bancaria</span>
+                            </div>
+                            {bankMovements.length > 0 && (
+                                <button
+                                    onClick={() => setBankMovements([])}
+                                    style={{ fontSize: '0.75rem', color: 'var(--primary)', background: 'none', border: 'none', fontWeight: 600, cursor: 'pointer' }}
+                                >
+                                    Limpiar
+                                </button>
+                            )}
                         </div>
 
-                        {bankMovements.map(item => {
-                            const appDate = new Date(item.appTx.timestamp);
-                            const appDateStr = appDate.toLocaleDateString([], { day: '2-digit', month: '2-digit' });
-                            const appTimeStr = appDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-                            let bankDateStr = '-';
-                            let bankTimeStr = '-';
-                            if (item.bankMatch?.date) {
-                                const parts = item.bankMatch.date.split(' ');
-                                if (parts.length >= 1) {
-                                    const dParts = parts[0].split('-');
-                                    if (dParts.length === 3) bankDateStr = `${dParts[2]}/${dParts[1]}`;
-                                    else bankDateStr = parts[0];
-                                }
-                                if (parts.length >= 2) {
-                                    bankTimeStr = parts[1].substring(0, 5);
-                                }
-                            }
-
-                            return (
-                                <div key={item.appTx.id} className="reconciliation-card compact">
-                                    {/* Left Side: App Record */}
-                                    <div className={`recon-side app ${item.confidence === 'high' ? 'high' : 'none'}`}>
-                                        <div className="recon-badge">APP</div>
-                                        <div className="recon-date-time-row">
-                                            <span>{appDateStr}</span>
-                                            <span className="separator">•</span>
-                                            <span className="time-dim">{appTimeStr}</span>
-                                        </div>
-                                        <div className="recon-main-text">{item.memberName}</div>
-                                        <div className="recon-amount">{item.appTx.amount.toFixed(2)}€</div>
-                                    </div>
-
-                                    {/* Center: Action Overlay */}
-                                    {item.bankMatch && (
-                                        <div className="recon-action-overlay">
-                                            <button
-                                                onClick={() => verifyMatched(item)}
-                                                className={`btn-confirm-icon ${item.confidence === 'high' ? 'high' : ''}`}
-                                                title="Confirmar Transacción"
-                                            >
-                                                <CheckIcon />
-                                            </button>
-                                        </div>
-                                    )}
-
-                                    {/* Right Side: Bank Match */}
-                                    <div className={`recon-side bank ${item.bankMatch ? 'high' : 'none'}`}>
-                                        <div className="recon-badge">BANCO</div>
-                                        <div className="recon-date-time-row">
-                                            <span>{bankDateStr}</span>
-                                            <span className="separator">•</span>
-                                            <span className="time-dim">{bankTimeStr}</span>
-                                        </div>
-                                        <div className="recon-main-text" title={item.bankMatch?.description}>
-                                            {item.bankMatch ? item.cleanBankDesc : 'No encontrado'}
-                                        </div>
-                                        <div className="recon-amount">
-                                            {item.bankMatch ? `${item.bankMatch.amount.toFixed(2)}€` : '-'}
-                                        </div>
-                                    </div>
+                        {bankMovements.length === 0 ? (
+                            <div className="file-upload-zone">
+                                <input
+                                    type="file"
+                                    accept=".csv"
+                                    onChange={handleFileUpload}
+                                    id="bank-file-upload"
+                                    style={{ display: 'none' }}
+                                />
+                                <label htmlFor="bank-file-upload" style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    cursor: 'pointer',
+                                    padding: '1.5rem',
+                                    border: '1px dashed var(--border)',
+                                    borderRadius: '1rem',
+                                    transition: 'background 0.2s'
+                                }}>
+                                    <ArrowUpTrayIcon style={{ width: '2rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }} />
+                                    <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>Subir Extracto Revolut (.csv)</span>
+                                    <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>Solo se procesarán movimientos nuevos</span>
+                                </label>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col gap-sm">
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                        {bankMovements.length} movimientos nuevos encontrados
+                                    </span>
+                                    <button
+                                        onClick={verifyAllMatches}
+                                        className="btn btn-primary"
+                                        style={{ fontSize: '0.7rem', padding: '0.4rem 0.8rem' }}
+                                        disabled={bankMovements.filter(m => m.bankMatch && m.confidence === 'high').length === 0}
+                                    >
+                                        Verificar Automáticos ({bankMovements.filter(m => m.bankMatch && m.confidence === 'high').length})
+                                    </button>
                                 </div>
-                            );
-                        })}
+
+                                {bankMovements.map(item => {
+                                    const appDate = new Date(item.appTx.timestamp);
+                                    const appDateStr = appDate.toLocaleDateString([], { day: '2-digit', month: '2-digit' });
+                                    const appTimeStr = appDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                                    let bankDateStr = '-';
+                                    let bankTimeStr = '-';
+                                    if (item.bankMatch?.date) {
+                                        const parts = item.bankMatch.date.split(' ');
+                                        if (parts.length >= 1) {
+                                            const dParts = parts[0].split('-');
+                                            if (dParts.length === 3) bankDateStr = `${dParts[2]}/${dParts[1]}`;
+                                            else bankDateStr = parts[0];
+                                        }
+                                        if (parts.length >= 2) {
+                                            bankTimeStr = parts[1].substring(0, 5);
+                                        }
+                                    }
+
+                                    return (
+                                        <div key={item.appTx.id} className="reconciliation-card compact">
+                                            {/* Left Side: App Record */}
+                                            <div className={`recon-side app ${item.confidence === 'high' ? 'high' : 'none'}`}>
+                                                <div className="recon-badge">APP</div>
+                                                <div className="recon-date-time-row">
+                                                    <span>{appDateStr}</span>
+                                                    <span className="separator">•</span>
+                                                    <span className="time-dim">{appTimeStr}</span>
+                                                </div>
+                                                <div className="recon-main-text">{item.memberName}</div>
+                                                <div className="recon-amount">{item.appTx.amount.toFixed(2)}€</div>
+                                            </div>
+
+                                            {/* Center: Action Overlay */}
+                                            {item.bankMatch && (
+                                                <div className="recon-action-overlay">
+                                                    <button
+                                                        onClick={() => verifyMatched(item)}
+                                                        className={`btn-confirm-icon ${item.confidence === 'high' ? 'high' : ''}`}
+                                                        title="Confirmar Transacción"
+                                                    >
+                                                        <CheckIcon />
+                                                    </button>
+                                                </div>
+                                            )}
+
+                                            {/* Right Side: Bank Match */}
+                                            <div className={`recon-side bank ${item.bankMatch ? 'high' : 'none'}`}>
+                                                <div className="recon-badge">BANCO</div>
+                                                <div className="recon-date-time-row">
+                                                    <span>{bankDateStr}</span>
+                                                    <span className="separator">•</span>
+                                                    <span className="time-dim">{bankTimeStr}</span>
+                                                </div>
+                                                <div className="recon-main-text" title={item.bankMatch?.description}>
+                                                    {item.bankMatch ? item.cleanBankDesc : 'No encontrado'}
+                                                </div>
+                                                <div className="recon-amount">
+                                                    {item.bankMatch ? `${item.bankMatch.amount.toFixed(2)}€` : '-'}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
-                )}
-            </div>
+
+                </>
+            )}
 
             {/* Product Management Section */}
             <div className="card mb-md" style={{ padding: '1rem', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
