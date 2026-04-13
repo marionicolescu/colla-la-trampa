@@ -553,7 +553,7 @@ export default function Admin() {
                                     {p.imageUrl ? (
                                         <img src={p.imageUrl} alt="" style={{ width: '2rem', height: '2rem', objectFit: 'contain' }} />
                                     ) : (
-                                        <span style={{ fontSize: '1.2rem' }}>{p.icon || '📦'}</span>
+                                        <span style={{ fontSize: '1.2rem' }}>{p.icon || '🧃'}</span>
                                     )}
                                     <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>{p.name}</div>
                                 </div>

@@ -217,7 +217,7 @@ export default function Consume() {
                 COPAS: '🍸',
                 VINOS: '🍷',
                 CERVEZAS: '🍺',
-                OTROS: '📦'
+                OTROS: '🧃'
             };
             const emoji = modeEmojis[mode] || '🥤';
 
@@ -383,7 +383,7 @@ export default function Consume() {
                             item.renderMode === 'CHUPITOS' ? '🥃' :
                                 item.renderMode === 'COPAS' ? '🍸' :
                                     item.renderMode === 'VINOS' ? '🍷' :
-                                        item.renderMode === 'CERVEZAS' ? '🍺' : '📦'}
+                                        item.renderMode === 'CERVEZAS' ? '🍺' : '🧃'}
                     </div>
                     <ProductImage item={item} />
                 </div>
