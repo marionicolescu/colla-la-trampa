@@ -260,9 +260,9 @@ export default function Statistics() {
                         <div
                             key={member.memberId}
                             className="card flex justify-between items-center"
-                            onClick={() => setSelectedMemberId(member.memberId)}
+                            //onClick={() => setSelectedMemberId(member.memberId)}
                             style={{
-                                cursor: 'pointer',
+                                //cursor: 'pointer',
                                 padding: '1rem',
                                 background: rankStyle.background,
                                 border: rankStyle.border,
